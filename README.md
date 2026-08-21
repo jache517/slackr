@@ -1,7 +1,7 @@
 # Slackr: Group Contribution Report Generator
 
 Automatically collects observable contribution evidence from the tools a student
-team already uses (GitHub, Google Docs, Google Meet), then generates a
+team already uses (GitHub and Google Docs), then generates a
 transparent Group Contribution Report at the end of the project.
 
 This is not a free-rider detector and does not produce a contribution score.
@@ -31,10 +31,12 @@ Create Project → Add Members → Map Identities → Connect Sources
 
 - **Project setup**: name, course, deadline, group, members
 - **Identity mapping**: link each member to their GitHub username and Google account
-- **Source connections**: GitHub repo, Google Doc, Google Meet
-- **Activity evidence**: commits, PRs, doc edits/comments, meeting attendance
-- **Member context**: space for contribution the system can't observe (interviews, design, offline work)
-- **Contribution Report**: per-member evidence summary, exportable, with an explicit "review suggested, not decided" note
+- **Source connections**: public GitHub repository and Google Doc
+- **Activity evidence**: commits and observable Docs edits/comments/suggestions
+- **Member role and context**: self-reported role, responsibilities, and space for work the system cannot observe
+- **Team evidence alerts**: neutral, rule-based prompts visible only to the team
+- **Contribution Report**: deterministic per-member evidence with source-separated charts and an explicit evidence-only disclaimer
+- **Optional AI draft**: role-aware, evidence-referenced summary that never replaces instructor review
 
 ## Tech stack
 
@@ -47,6 +49,7 @@ Create Project → Add Members → Map Identities → Connect Sources
 | Auth           | Supabase Auth                            |
 | GitHub data    | GitHub REST API                          |
 | Google data    | Google OAuth + Drive Activity API        |
+| Optional AI    | Provider/model pending privacy review    |
 | Deployment     | Vercel                                   |
 
 ## Getting started
@@ -65,5 +68,10 @@ Open [http://localhost:3000](http://localhost:3000).
 See [`slackr-mvp.md`](./slackr-mvp.md) for the full product spec, database
 schema, and development plan.
 
-**Out of scope for this MVP:** Canvas integration, contribution scoring,
-automatic grading, free-rider classification, ML-based judgement.
+**Out of scope for this MVP:** Google Meet, PR/code-review metrics, PDF/CSV
+export, Canvas integration, contribution scoring, ranking, automatic grading,
+free-rider classification, and AI judgement. The optional AI feature produces
+only an evidence-grounded draft; it does not score or decide contribution.
+
+See [`docs/decisions/report-presentation-and-ai.md`](./docs/decisions/report-presentation-and-ai.md)
+for the separation between team-only alerts and the instructor-facing report.
