@@ -207,6 +207,95 @@ composite Wizard endpoint.
 
 Only `name` is required. Set an identity field to `null` to remove that mapping. Role context uses a separate endpoint so its authorship remains explicit.
 
+### Member input and response rules
+
+Member request bodies are strict JSON objects. Unknown fields and client-supplied
+`id`, `projectId`, `authUserId`, `roleContext`, timestamps, or status fields are
+invalid. Route `projectId` and `memberId` values must be UUID strings.
+
+The server trims every string. It preserves the submitted case of `name`, but
+stores and returns non-null identity values in lowercase. Field rules are:
+
+- `name`: 1–120 characters after trimming;
+- `email`: `null` or a valid email address up to 254 characters;
+- `googleEmail`: `null` or a valid email address up to 254 characters, including
+  Google Workspace domains; and
+- `githubUsername`: `null` or a 1–39 character GitHub username containing only
+  ASCII letters, digits, and hyphens, with no leading or trailing hyphen. Profile
+  URLs and values beginning with `@` are invalid.
+
+`POST /api/projects/:projectId/members` requires `name`; omitted identity fields
+are persisted as `null`. `PATCH /api/members/:memberId` requires at least one
+allowed field. A field omitted from PATCH is unchanged, while an explicit `null`
+removes that identity mapping. Empty strings are validation errors and are not
+converted to `null`.
+
+Member names do not need to be unique. Within one Project, non-null `email`,
+`githubUsername`, and `googleEmail` values are each case-insensitively unique;
+`null` values do not conflict. The same identity may be reused in a different
+Project. `email` and `googleEmail` are separate identity classes, so the same
+address may appear in both fields on one Member.
+
+A same-Project identity conflict returns `409` with every conflict that can be
+identified safely:
+
+```json
+{
+  "error": {
+    "code": "MEMBER_IDENTITY_CONFLICT",
+    "message": "One or more identities are already assigned in this project",
+    "fields": {
+      "githubUsername": "Already assigned to another member in this project"
+    }
+  }
+}
+```
+
+The database partial unique indexes remain the race-safe source of truth. Known
+Member identity constraint violations map to this response; raw database errors,
+constraint payloads, and SQL are never returned.
+
+Member responses contain only the public `Member` fields. Manual identity values
+do not assert OAuth, provider connection, successful sync, account ownership, or
+observed activity. Create does not infer or set `auth_user_id` from an email.
+PATCH cannot move a Member to another Project, link an authenticated user, change
+role/context, or modify provider evidence. An existing `roleContext` is preserved
+in the PATCH response.
+
+### Member access, deletion, and errors
+
+All three Member endpoints require a Supabase cookie session and Project Owner
+access. The server derives ownership from the verified user and route resource;
+it never accepts an owner or Project ID from a Member request body. Missing and
+cross-owner Projects both return `404 PROJECT_NOT_FOUND` for nested create.
+Missing and cross-owner Members both return `404 MEMBER_NOT_FOUND` for PATCH and
+DELETE. RLS remains defense in depth in addition to explicit owner-scoped Route
+Handler checks and mutations.
+
+Successful DELETE performs one Member deletion and returns an empty-body `204`.
+Deleting the same Member again returns `404 MEMBER_NOT_FOUND`. The existing
+foreign keys define the deletion result:
+
+- GitHub and Google Docs activity rows remain, with `member_id` set to `null`;
+- Member Context and Member Role Context rows are cascade-deleted; and
+- Source Connections, other Members, and their evidence are unchanged.
+
+Member create and delete change the real `memberCount` returned by subsequent
+Project reads. Member mutations do not update `projects.updated_at`, so they do
+not change public `Project.updatedAt` semantics.
+
+Member endpoint errors use these stable behaviours:
+
+- malformed JSON: `400 MALFORMED_JSON`;
+- invalid UUID, body, empty PATCH, email, or GitHub username:
+  `400 VALIDATION_ERROR`, with field details when available;
+- unauthenticated: `401 UNAUTHENTICATED`;
+- inaccessible nested Project: `404 PROJECT_NOT_FOUND`;
+- inaccessible Member: `404 MEMBER_NOT_FOUND`;
+- duplicate identity: `409 MEMBER_IDENTITY_CONFLICT`; and
+- unexpected database or internal failure: `500 INTERNAL_ERROR` with a fixed,
+  safe message.
+
 ## Member Role Context API — approved MVP+ extension
 
 ### `PUT /api/members/:memberId/role-context`
