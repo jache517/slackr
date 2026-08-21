@@ -1,0 +1,270 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export type SourceType = "github" | "google_docs";
+export type DocsActivityType = "edit" | "comment" | "suggestion";
+export type ContextSubmissionType =
+  | "member_self_reported"
+  | "project_owner_recorded";
+
+export type Database = {
+  public: {
+    Tables: {
+      projects: {
+        Row: {
+          id: string;
+          name: string;
+          course: string;
+          group_name: string;
+          deadline: string;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          course: string;
+          group_name: string;
+          deadline: string;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          course?: string;
+          group_name?: string;
+          deadline?: string;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      members: {
+        Row: {
+          id: string;
+          project_id: string;
+          name: string;
+          email: string | null;
+          github_username: string | null;
+          google_email: string | null;
+          auth_user_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          name: string;
+          email?: string | null;
+          github_username?: string | null;
+          google_email?: string | null;
+          auth_user_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          name?: string;
+          email?: string | null;
+          github_username?: string | null;
+          google_email?: string | null;
+          auth_user_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      source_connections: {
+        Row: {
+          id: string;
+          project_id: string;
+          source_type: SourceType;
+          external_id: string;
+          display_name: string;
+          connected_at: string;
+          last_synced_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          source_type: SourceType;
+          external_id: string;
+          display_name: string;
+          connected_at?: string;
+          last_synced_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          source_type?: SourceType;
+          external_id?: string;
+          display_name?: string;
+          connected_at?: string;
+          last_synced_at?: string | null;
+        };
+        Relationships: [];
+      };
+      github_activity: {
+        Row: {
+          id: string;
+          project_id: string;
+          source_connection_id: string;
+          member_id: string | null;
+          commit_sha: string;
+          commit_message: string;
+          author_name: string | null;
+          author_email: string | null;
+          authored_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          source_connection_id: string;
+          member_id?: string | null;
+          commit_sha: string;
+          commit_message: string;
+          author_name?: string | null;
+          author_email?: string | null;
+          authored_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          source_connection_id?: string;
+          member_id?: string | null;
+          commit_sha?: string;
+          commit_message?: string;
+          author_name?: string | null;
+          author_email?: string | null;
+          authored_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      docs_activity: {
+        Row: {
+          id: string;
+          project_id: string;
+          source_connection_id: string;
+          member_id: string | null;
+          activity_type: DocsActivityType;
+          actor_email: string | null;
+          provider_activity_id: string | null;
+          occurred_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          source_connection_id: string;
+          member_id?: string | null;
+          activity_type: DocsActivityType;
+          actor_email?: string | null;
+          provider_activity_id?: string | null;
+          occurred_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          source_connection_id?: string;
+          member_id?: string | null;
+          activity_type?: DocsActivityType;
+          actor_email?: string | null;
+          provider_activity_id?: string | null;
+          occurred_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      member_context: {
+        Row: {
+          id: string;
+          project_id: string;
+          member_id: string;
+          context_text: string;
+          submitted_by_user_id: string;
+          submission_type: ContextSubmissionType;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          member_id: string;
+          context_text: string;
+          submitted_by_user_id?: string;
+          submission_type?: ContextSubmissionType;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          member_id?: string;
+          context_text?: string;
+          submitted_by_user_id?: string;
+          submission_type?: ContextSubmissionType;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      member_role_context: {
+        Row: {
+          id: string;
+          project_id: string;
+          member_id: string;
+          primary_role: string;
+          additional_roles: string[];
+          responsibilities: string[];
+          additional_context: string | null;
+          submission_type: ContextSubmissionType;
+          submitted_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          member_id: string;
+          primary_role: string;
+          additional_roles?: string[];
+          responsibilities?: string[];
+          additional_context?: string | null;
+          submission_type?: ContextSubmissionType;
+          submitted_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          member_id?: string;
+          primary_role?: string;
+          additional_roles?: string[];
+          responsibilities?: string[];
+          additional_context?: string | null;
+          submission_type?: ContextSubmissionType;
+          submitted_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<never, never>;
+    Functions: Record<never, never>;
+    Enums: Record<never, never>;
+    CompositeTypes: Record<never, never>;
+  };
+};
