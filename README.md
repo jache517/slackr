@@ -51,8 +51,10 @@ Create Project → Add Members → Map Identities → Connect Sources
 
 ## Getting started
 
+Use the Node.js version recorded in [`.nvmrc`](./.nvmrc) (`24.15.0`), then run:
+
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 

@@ -25,6 +25,28 @@ Status codes: `200` success, `201` created, `204` deleted, `400` invalid input,
 `401` unauthenticated, `403` forbidden, `404` not found, `409` conflict,
 `500` server error, and `502` third-party API error.
 
+## Authentication
+
+- Protected endpoints use the Supabase cookie session.
+- Same-origin frontend requests send cookies automatically and do not add an
+  `Authorization` header.
+- Route Handlers verify the current user from the request cookies. A user or
+  owner ID supplied by the client is never accepted as authentication.
+- An unauthenticated protected request returns `401`:
+
+```json
+{
+  "error": {
+    "code": "UNAUTHENTICATED",
+    "message": "Authentication is required"
+  }
+}
+```
+
+The Google OAuth callback is a browser redirect endpoint. It validates both the
+current Slackr session and OAuth `state`; it does not use the standard JSON
+response wrapper.
+
 ## Shared data shapes
 
 - `Project`: `id, name, course, groupName, deadline, memberCount, connectedSourceCount, createdAt`
@@ -68,7 +90,20 @@ Only `name` is required. Set an identity field to `null` to remove that mapping.
 | Method | Path | Request | Response |
 |---|---|---|---|
 | `POST` | `/api/projects/:projectId/sources/github` | `{ repositoryUrl }` | `201 SourceConnection` |
-| `POST` | `/api/projects/:projectId/sources/google` | `{ documentUrl }` | `201 SourceConnection` |
+| `POST` | `/api/projects/:projectId/sources/google` | `{ documentUrl }` | `200 { authorizationUrl }` |
+| `GET` | `/api/integrations/google/callback` | Google OAuth callback parameters | `302` to `/projects/:projectId/sources` |
+
+GitHub connections support public repositories only in MVP v1 and do not use
+GitHub OAuth or provider tokens.
+
+The Google source request validates the authenticated user's project access and
+the document URL, stores a short-lived signed connection intent, and returns a
+Google OAuth authorisation URL. The callback validates the session and OAuth
+state, exchanges the code on the server, verifies document access, creates the
+`SourceConnection`, performs the initial activity collection, and redirects to
+the project source page. Google tokens never appear in API responses.
+
+Disconnect-source and manual-resync endpoints are not part of MVP v1.
 
 ## Activity API
 
