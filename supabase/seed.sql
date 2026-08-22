@@ -1,0 +1,268 @@
+-- Seed data for local development.
+--
+-- Generated to reproduce the figures the interface was designed against:
+--   commits 18+16+13+2 = 49, doc activity 14+11+12+3 = 40,
+--   attendances 4+4+4+2 = 14, total events 49+40+14 = 103,
+--   shares 35/30/28/7. The four-week series are seeded by timestamp, so
+--   the sparklines derive from the rows rather than being asserted.
+--
+-- Sign in as owner@slackr.test: the magic link lands in Mailpit at
+-- http://127.0.0.1:54324.
+
+begin;
+
+insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@slackr.test', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, false)
+on conflict (id) do nothing;
+
+-- COMP30022 Final Project
+insert into public.projects (id, title, deadline, created_by) values
+  ('11111111-1111-4111-8111-000000000001', 'COMP30022 Final Project', current_date + 2, '00000000-0000-4000-8000-000000000001');
+
+insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
+  ('33333333-3333-4333-8333-000000000001', '11111111-1111-4111-8111-000000000001', 'github', 'group3/final-project', 'group3/final-project', now()),
+  ('33333333-3333-4333-8333-000000000002', '11111111-1111-4111-8111-000000000001', 'google_docs', 'doc-001', 'Final Project Report', now()),
+  ('33333333-3333-4333-8333-000000000003', '11111111-1111-4111-8111-000000000001', 'google_meet', 'cal-001', 'Weekly stand-up calendar', now());
+
+insert into public.members (id, project_id, name, email, github_username, google_email) values
+  ('22222222-2222-4222-8222-000000000001', '11111111-1111-4111-8111-000000000001', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', 'alice.zhang@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000002', '11111111-1111-4111-8111-000000000001', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', 'sheldon.chen@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000003', '11111111-1111-4111-8111-000000000001', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', 'bob.wang@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000004', '11111111-1111-4111-8111-000000000001', 'Kevin Liu', 'kevin.liu@unitech.edu.au', 'kevinliu97', 'kevin.liu@unitech.edu.au');
+
+insert into public.meetings (id, project_id, source_connection_id, title, held_at) values
+  ('44444444-4444-4444-8444-000000000300', '11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000003', 'Weekly stand-up', now() - interval '666 hours'),
+  ('44444444-4444-4444-8444-000000000301', '11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000003', 'Weekly stand-up', now() - interval '491 hours'),
+  ('44444444-4444-4444-8444-000000000302', '11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000003', 'Weekly stand-up', now() - interval '316 hours'),
+  ('44444444-4444-4444-8444-000000000303', '11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000003', 'Weekly stand-up', now() - interval '141 hours');
+
+insert into public.github_activity (project_id, source_connection_id, member_id, commit_sha, commit_message, author_name, author_email, author_username, authored_at) values
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-000500000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '631 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-000600000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '624 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-000700000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '449 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-000800000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '442 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-000900000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '435 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001000000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '428 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001100000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '421 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001200000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '414 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001300000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '407 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001400000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '232 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001500000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '225 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001600000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '218 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001700000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '211 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001800000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '204 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-001900000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '197 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-002000000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '330 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-002100000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '323 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000001', 'alice-dev-002200000000000000000000000000', 'Work on COMP30022 Final Project', 'Alice Zhang', 'alice.zhang@unitech.edu.au', 'alice-dev', now() - interval '316 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0041000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '659 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0042000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '652 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0043000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '477 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0044000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '470 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0045000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '463 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0046000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '456 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0047000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '449 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0048000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '442 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0049000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '267 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0050000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '260 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0051000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '253 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0052000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '246 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0053000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '239 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0054000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '232 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0055000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '225 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000002', 'sheldonchen-0056000000000000000000000000', 'Work on COMP30022 Final Project', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', 'sheldonchen', now() - interval '218 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00720000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '582 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00730000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '575 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00740000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '568 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00750000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '561 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00760000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '554 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00770000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '547 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00780000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '540 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00790000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '533 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00800000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '498 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00810000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '491 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00820000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '484 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00830000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '477 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000003', 'bobcode-00840000000000000000000000000000', 'Work on COMP30022 Final Project', 'Bob Wang', 'bob.wang@unitech.edu.au', 'bobcode', now() - interval '470 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000004', 'kevinliu97-00990000000000000000000000000', 'Work on COMP30022 Final Project', 'Kevin Liu', 'kevin.liu@unitech.edu.au', 'kevinliu97', now() - interval '533 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', '22222222-2222-4222-8222-000000000004', 'kevinliu97-01000000000000000000000000000', 'Work on COMP30022 Final Project', 'Kevin Liu', 'kevin.liu@unitech.edu.au', 'kevinliu97', now() - interval '666 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', null, 'a-zhang-uni-0104000000000000000000000000', 'Work on COMP30022 Final Project', 'A Zhang', 'a.zhang@personal.example', 'a-zhang-uni', now() - interval '638 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', null, 'a-zhang-uni-0105000000000000000000000000', 'Work on COMP30022 Final Project', 'A Zhang', 'a.zhang@personal.example', 'a-zhang-uni', now() - interval '463 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', null, 'a-zhang-uni-0106000000000000000000000000', 'Work on COMP30022 Final Project', 'A Zhang', 'a.zhang@personal.example', 'a-zhang-uni', now() - interval '288 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', null, 'a-zhang-uni-0107000000000000000000000000', 'Work on COMP30022 Final Project', 'A Zhang', 'a.zhang@personal.example', 'a-zhang-uni', now() - interval '113 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', null, 'a-zhang-uni-0108000000000000000000000000', 'Work on COMP30022 Final Project', 'A Zhang', 'a.zhang@personal.example', 'a-zhang-uni', now() - interval '610 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000001', null, 'a-zhang-uni-0109000000000000000000000000', 'Work on COMP30022 Final Project', 'A Zhang', 'a.zhang@personal.example', 'a-zhang-uni', now() - interval '435 hours');
+
+insert into public.docs_activity (project_id, source_connection_id, member_id, activity_type, actor_email, provider_activity_id, occurred_at) values
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'suggestion', 'alice.zhang@unitech.edu.au', 'doc-001-0023', now() - interval '309 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'edit', 'alice.zhang@unitech.edu.au', 'doc-001-0024', now() - interval '302 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'comment', 'alice.zhang@unitech.edu.au', 'doc-001-0025', now() - interval '127 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'suggestion', 'alice.zhang@unitech.edu.au', 'doc-001-0026', now() - interval '120 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'edit', 'alice.zhang@unitech.edu.au', 'doc-001-0027', now() - interval '113 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'comment', 'alice.zhang@unitech.edu.au', 'doc-001-0028', now() - interval '106 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'suggestion', 'alice.zhang@unitech.edu.au', 'doc-001-0029', now() - interval '99 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'edit', 'alice.zhang@unitech.edu.au', 'doc-001-0030', now() - interval '92 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'comment', 'alice.zhang@unitech.edu.au', 'doc-001-0031', now() - interval '85 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'suggestion', 'alice.zhang@unitech.edu.au', 'doc-001-0032', now() - interval '78 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'edit', 'alice.zhang@unitech.edu.au', 'doc-001-0033', now() - interval '71 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'comment', 'alice.zhang@unitech.edu.au', 'doc-001-0034', now() - interval '64 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'suggestion', 'alice.zhang@unitech.edu.au', 'doc-001-0035', now() - interval '57 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000001', 'edit', 'alice.zhang@unitech.edu.au', 'doc-001-0036', now() - interval '50 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'edit', 'sheldon.chen@unitech.edu.au', 'doc-001-0057', now() - interval '211 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'comment', 'sheldon.chen@unitech.edu.au', 'doc-001-0058', now() - interval '36 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'suggestion', 'sheldon.chen@unitech.edu.au', 'doc-001-0059', now() - interval '29 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'edit', 'sheldon.chen@unitech.edu.au', 'doc-001-0060', now() - interval '162 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'comment', 'sheldon.chen@unitech.edu.au', 'doc-001-0061', now() - interval '155 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'suggestion', 'sheldon.chen@unitech.edu.au', 'doc-001-0062', now() - interval '148 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'edit', 'sheldon.chen@unitech.edu.au', 'doc-001-0063', now() - interval '141 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'comment', 'sheldon.chen@unitech.edu.au', 'doc-001-0064', now() - interval '134 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'suggestion', 'sheldon.chen@unitech.edu.au', 'doc-001-0065', now() - interval '127 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'edit', 'sheldon.chen@unitech.edu.au', 'doc-001-0066', now() - interval '120 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000002', 'comment', 'sheldon.chen@unitech.edu.au', 'doc-001-0067', now() - interval '113 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'comment', 'bob.wang@unitech.edu.au', 'doc-001-0085', now() - interval '463 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'suggestion', 'bob.wang@unitech.edu.au', 'doc-001-0086', now() - interval '456 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'edit', 'bob.wang@unitech.edu.au', 'doc-001-0087', now() - interval '281 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'comment', 'bob.wang@unitech.edu.au', 'doc-001-0088', now() - interval '274 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'suggestion', 'bob.wang@unitech.edu.au', 'doc-001-0089', now() - interval '267 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'edit', 'bob.wang@unitech.edu.au', 'doc-001-0090', now() - interval '260 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'comment', 'bob.wang@unitech.edu.au', 'doc-001-0091', now() - interval '253 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'suggestion', 'bob.wang@unitech.edu.au', 'doc-001-0092', now() - interval '246 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'edit', 'bob.wang@unitech.edu.au', 'doc-001-0093', now() - interval '71 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'comment', 'bob.wang@unitech.edu.au', 'doc-001-0094', now() - interval '64 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'suggestion', 'bob.wang@unitech.edu.au', 'doc-001-0095', now() - interval '57 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000003', 'edit', 'bob.wang@unitech.edu.au', 'doc-001-0096', now() - interval '50 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000004', 'suggestion', 'kevin.liu@unitech.edu.au', 'doc-001-0101', now() - interval '491 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000004', 'edit', 'kevin.liu@unitech.edu.au', 'doc-001-0102', now() - interval '316 hours'),
+  ('11111111-1111-4111-8111-000000000001', '33333333-3333-4333-8333-000000000002', '22222222-2222-4222-8222-000000000004', 'comment', 'kevin.liu@unitech.edu.au', 'doc-001-0103', now() - interval '141 hours');
+
+insert into public.meeting_attendance (project_id, meeting_id, member_id, attendee_name, attendee_email, joined_at) values
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000300', '22222222-2222-4222-8222-000000000001', 'Alice Zhang', 'alice.zhang@unitech.edu.au', now() - interval '666 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000301', '22222222-2222-4222-8222-000000000001', 'Alice Zhang', 'alice.zhang@unitech.edu.au', now() - interval '491 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000302', '22222222-2222-4222-8222-000000000001', 'Alice Zhang', 'alice.zhang@unitech.edu.au', now() - interval '316 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000303', '22222222-2222-4222-8222-000000000001', 'Alice Zhang', 'alice.zhang@unitech.edu.au', now() - interval '141 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000300', '22222222-2222-4222-8222-000000000002', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', now() - interval '554 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000301', '22222222-2222-4222-8222-000000000002', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', now() - interval '379 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000302', '22222222-2222-4222-8222-000000000002', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', now() - interval '204 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000303', '22222222-2222-4222-8222-000000000002', 'Sheldon Chen', 'sheldon.chen@unitech.edu.au', now() - interval '29 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000300', '22222222-2222-4222-8222-000000000003', 'Bob Wang', 'bob.wang@unitech.edu.au', now() - interval '617 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000301', '22222222-2222-4222-8222-000000000003', 'Bob Wang', 'bob.wang@unitech.edu.au', now() - interval '442 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000302', '22222222-2222-4222-8222-000000000003', 'Bob Wang', 'bob.wang@unitech.edu.au', now() - interval '267 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000303', '22222222-2222-4222-8222-000000000003', 'Bob Wang', 'bob.wang@unitech.edu.au', now() - interval '92 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000300', '22222222-2222-4222-8222-000000000004', 'Kevin Liu', 'kevin.liu@unitech.edu.au', now() - interval '554 hours'),
+  ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000301', '22222222-2222-4222-8222-000000000004', 'Kevin Liu', 'kevin.liu@unitech.edu.au', now() - interval '379 hours');
+
+-- INFO20003 Group Project
+insert into public.projects (id, title, deadline, created_by) values
+  ('11111111-1111-4111-8111-000000000002', 'INFO20003 Group Project', current_date + 44, '00000000-0000-4000-8000-000000000001');
+
+insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
+  ('33333333-3333-4333-8333-000000000004', '11111111-1111-4111-8111-000000000002', 'github', 'group3/final-project', 'group3/final-project', now()),
+  ('33333333-3333-4333-8333-000000000005', '11111111-1111-4111-8111-000000000002', 'google_docs', 'doc-002', 'Final Project Report', now()),
+  ('33333333-3333-4333-8333-000000000006', '11111111-1111-4111-8111-000000000002', 'google_meet', 'cal-002', 'Weekly stand-up calendar', now());
+
+insert into public.members (id, project_id, name, email, github_username, google_email) values
+  ('22222222-2222-4222-8222-000000000005', '11111111-1111-4111-8111-000000000002', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', 'priya.nair@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000006', '11111111-1111-4111-8111-000000000002', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', 'tom.fischer@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000007', '11111111-1111-4111-8111-000000000002', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', 'mei.ling@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000008', '11111111-1111-4111-8111-000000000002', 'Omar Haddad', 'omar.haddad@unitech.edu.au', 'ohaddad', 'omar.haddad@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000009', '11111111-1111-4111-8111-000000000002', 'Ruby Ellis', 'ruby.ellis@unitech.edu.au', 'rubyellis', 'ruby.ellis@unitech.edu.au');
+
+insert into public.meetings (id, project_id, source_connection_id, title, held_at) values
+  ('44444444-4444-4444-8444-000000000600', '11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000006', 'Weekly stand-up', now() - interval '666 hours'),
+  ('44444444-4444-4444-8444-000000000601', '11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000006', 'Weekly stand-up', now() - interval '491 hours'),
+  ('44444444-4444-4444-8444-000000000602', '11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000006', 'Weekly stand-up', now() - interval '316 hours'),
+  ('44444444-4444-4444-8444-000000000603', '11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000006', 'Weekly stand-up', now() - interval '141 hours'),
+  ('44444444-4444-4444-8444-000000000604', '11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000006', 'Weekly stand-up', now() - interval '638 hours'),
+  ('44444444-4444-4444-8444-000000000605', '11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000006', 'Weekly stand-up', now() - interval '463 hours');
+
+insert into public.github_activity (project_id, source_connection_id, member_id, commit_sha, commit_message, author_name, author_email, author_username, authored_at) values
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-000500000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '631 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-000600000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '624 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-000700000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '617 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-000800000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '442 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-000900000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '435 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-001000000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '428 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-001100000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '421 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-001200000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '246 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000005', 'priyan-001300000000000000000000000000000', 'Work on INFO20003 Group Project', 'Priya Nair', 'priya.nair@unitech.edu.au', 'priyan', now() - interval '239 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0025000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '631 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0026000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '624 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0027000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '449 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0028000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '442 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0029000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '435 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0030000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '260 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0031000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '253 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000006', 'tfischer-0032000000000000000000000000000', 'Work on INFO20003 Group Project', 'Tom Fischer', 'tom.fischer@unitech.edu.au', 'tfischer', now() - interval '246 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00430000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '645 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00440000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '470 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00450000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '463 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00460000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '288 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00470000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '281 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00480000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '274 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000007', 'meiling-00490000000000000000000000000000', 'Work on INFO20003 Group Project', 'Mei Ling', 'mei.ling@unitech.edu.au', 'meiling', now() - interval '267 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000008', 'ohaddad-00590000000000000000000000000000', 'Work on INFO20003 Group Project', 'Omar Haddad', 'omar.haddad@unitech.edu.au', 'ohaddad', now() - interval '533 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000008', 'ohaddad-00600000000000000000000000000000', 'Work on INFO20003 Group Project', 'Omar Haddad', 'omar.haddad@unitech.edu.au', 'ohaddad', now() - interval '498 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000008', 'ohaddad-00610000000000000000000000000000', 'Work on INFO20003 Group Project', 'Omar Haddad', 'omar.haddad@unitech.edu.au', 'ohaddad', now() - interval '323 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000008', 'ohaddad-00620000000000000000000000000000', 'Work on INFO20003 Group Project', 'Omar Haddad', 'omar.haddad@unitech.edu.au', 'ohaddad', now() - interval '316 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000008', 'ohaddad-00630000000000000000000000000000', 'Work on INFO20003 Group Project', 'Omar Haddad', 'omar.haddad@unitech.edu.au', 'ohaddad', now() - interval '309 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000009', 'rubyellis-006900000000000000000000000000', 'Work on INFO20003 Group Project', 'Ruby Ellis', 'ruby.ellis@unitech.edu.au', 'rubyellis', now() - interval '435 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000004', '22222222-2222-4222-8222-000000000009', 'rubyellis-007000000000000000000000000000', 'Work on INFO20003 Group Project', 'Ruby Ellis', 'ruby.ellis@unitech.edu.au', 'rubyellis', now() - interval '92 hours');
+
+insert into public.docs_activity (project_id, source_connection_id, member_id, activity_type, actor_email, provider_activity_id, occurred_at) values
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'suggestion', 'priya.nair@unitech.edu.au', 'doc-002-0014', now() - interval '232 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'edit', 'priya.nair@unitech.edu.au', 'doc-002-0015', now() - interval '225 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'comment', 'priya.nair@unitech.edu.au', 'doc-002-0016', now() - interval '50 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'suggestion', 'priya.nair@unitech.edu.au', 'doc-002-0017', now() - interval '43 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'edit', 'priya.nair@unitech.edu.au', 'doc-002-0018', now() - interval '36 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'comment', 'priya.nair@unitech.edu.au', 'doc-002-0019', now() - interval '29 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000005', 'suggestion', 'priya.nair@unitech.edu.au', 'doc-002-0020', now() - interval '162 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000006', 'edit', 'tom.fischer@unitech.edu.au', 'doc-002-0033', now() - interval '239 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000006', 'comment', 'tom.fischer@unitech.edu.au', 'doc-002-0034', now() - interval '64 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000006', 'suggestion', 'tom.fischer@unitech.edu.au', 'doc-002-0035', now() - interval '57 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000006', 'edit', 'tom.fischer@unitech.edu.au', 'doc-002-0036', now() - interval '50 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000006', 'comment', 'tom.fischer@unitech.edu.au', 'doc-002-0037', now() - interval '43 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000006', 'suggestion', 'tom.fischer@unitech.edu.au', 'doc-002-0038', now() - interval '36 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000007', 'suggestion', 'mei.ling@unitech.edu.au', 'doc-002-0050', now() - interval '92 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000007', 'edit', 'mei.ling@unitech.edu.au', 'doc-002-0051', now() - interval '85 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000007', 'comment', 'mei.ling@unitech.edu.au', 'doc-002-0052', now() - interval '78 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000007', 'suggestion', 'mei.ling@unitech.edu.au', 'doc-002-0053', now() - interval '71 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000007', 'edit', 'mei.ling@unitech.edu.au', 'doc-002-0054', now() - interval '64 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000008', 'comment', 'omar.haddad@unitech.edu.au', 'doc-002-0064', now() - interval '134 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000008', 'suggestion', 'omar.haddad@unitech.edu.au', 'doc-002-0065', now() - interval '127 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000008', 'edit', 'omar.haddad@unitech.edu.au', 'doc-002-0066', now() - interval '120 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000008', 'comment', 'omar.haddad@unitech.edu.au', 'doc-002-0067', now() - interval '113 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000009', 'suggestion', 'ruby.ellis@unitech.edu.au', 'doc-002-0071', now() - interval '85 hours'),
+  ('11111111-1111-4111-8111-000000000002', '33333333-3333-4333-8333-000000000005', '22222222-2222-4222-8222-000000000009', 'edit', 'ruby.ellis@unitech.edu.au', 'doc-002-0072', now() - interval '78 hours');
+
+insert into public.meeting_attendance (project_id, meeting_id, member_id, attendee_name, attendee_email, joined_at) values
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000600', '22222222-2222-4222-8222-000000000005', 'Priya Nair', 'priya.nair@unitech.edu.au', now() - interval '666 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000601', '22222222-2222-4222-8222-000000000005', 'Priya Nair', 'priya.nair@unitech.edu.au', now() - interval '491 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000602', '22222222-2222-4222-8222-000000000005', 'Priya Nair', 'priya.nair@unitech.edu.au', now() - interval '316 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000603', '22222222-2222-4222-8222-000000000005', 'Priya Nair', 'priya.nair@unitech.edu.au', now() - interval '141 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000600', '22222222-2222-4222-8222-000000000006', 'Tom Fischer', 'tom.fischer@unitech.edu.au', now() - interval '666 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000601', '22222222-2222-4222-8222-000000000006', 'Tom Fischer', 'tom.fischer@unitech.edu.au', now() - interval '491 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000602', '22222222-2222-4222-8222-000000000006', 'Tom Fischer', 'tom.fischer@unitech.edu.au', now() - interval '316 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000603', '22222222-2222-4222-8222-000000000006', 'Tom Fischer', 'tom.fischer@unitech.edu.au', now() - interval '141 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000600', '22222222-2222-4222-8222-000000000007', 'Mei Ling', 'mei.ling@unitech.edu.au', now() - interval '540 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000601', '22222222-2222-4222-8222-000000000007', 'Mei Ling', 'mei.ling@unitech.edu.au', now() - interval '365 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000602', '22222222-2222-4222-8222-000000000007', 'Mei Ling', 'mei.ling@unitech.edu.au', now() - interval '330 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000603', '22222222-2222-4222-8222-000000000007', 'Mei Ling', 'mei.ling@unitech.edu.au', now() - interval '155 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000600', '22222222-2222-4222-8222-000000000008', 'Omar Haddad', 'omar.haddad@unitech.edu.au', now() - interval '568 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000601', '22222222-2222-4222-8222-000000000008', 'Omar Haddad', 'omar.haddad@unitech.edu.au', now() - interval '393 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000602', '22222222-2222-4222-8222-000000000008', 'Omar Haddad', 'omar.haddad@unitech.edu.au', now() - interval '218 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000603', '22222222-2222-4222-8222-000000000008', 'Omar Haddad', 'omar.haddad@unitech.edu.au', now() - interval '43 hours'),
+  ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000600', '22222222-2222-4222-8222-000000000009', 'Ruby Ellis', 'ruby.ellis@unitech.edu.au', now() - interval '617 hours');
+
+-- SWEN30006 Project 2
+insert into public.projects (id, title, deadline, created_by) values
+  ('11111111-1111-4111-8111-000000000003', 'SWEN30006 Project 2', current_date + 24, '00000000-0000-4000-8000-000000000001');
+
+insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
+  ('33333333-3333-4333-8333-000000000007', '11111111-1111-4111-8111-000000000003', 'github', 'group3/final-project', 'group3/final-project', now());
+
+insert into public.members (id, project_id, name, email, github_username, google_email) values
+  ('22222222-2222-4222-8222-000000000010', '11111111-1111-4111-8111-000000000003', 'Dan Petrov', 'dan.petrov@unitech.edu.au', 'dpetrov', 'dan.petrov@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000011', '11111111-1111-4111-8111-000000000003', 'Yuki Sato', 'yuki.sato@unitech.edu.au', 'yukisato', 'yuki.sato@unitech.edu.au'),
+  ('22222222-2222-4222-8222-000000000012', '11111111-1111-4111-8111-000000000003', 'Hana Kim', 'hana.kim@unitech.edu.au', 'hanakim', 'hana.kim@unitech.edu.au');
+
+commit;
