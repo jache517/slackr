@@ -135,9 +135,7 @@ function SourceRow({
         {source.connected ? (
           <Badge tone="ok">Connected</Badge>
         ) : (
-          <span className="text-body font-medium text-amber-800">
-            Not connected
-          </span>
+          <Badge tone="warn">Not connected</Badge>
         )}
       </span>
 

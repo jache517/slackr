@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { SyncIcon } from "@/components/icons";
 import { useToast } from "@/components/toast";
-import { Button } from "@/components/ui";
 
 /**
  * Collect again, now.
  *
  * The sync is idempotent, so the risk here is not a double press but a silent
  * one: the button reports what actually landed, including a sync that
- * completed and found nothing new.
+ * completed and found nothing new. The glyph carries no visible label, so its
+ * name is stated for screen readers and as a tooltip.
  */
 export function SyncButton({ projectId }: { projectId: string }) {
   const router = useRouter();
@@ -59,14 +59,22 @@ export function SyncButton({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Button
-      variant="secondary"
+    <button
+      type="button"
       onClick={sync}
       aria-busy={syncing || undefined}
-      disabledReason={syncing ? "A sync is already running." : undefined}
+      aria-disabled={syncing || undefined}
+      title="Sync sources"
+      className={`flex size-9 items-center justify-center rounded-control text-ink-500 transition-colors duration-[120ms] ${
+        syncing
+          ? "cursor-not-allowed text-ink-300"
+          : "hover:bg-surface-page hover:text-ink-900"
+      }`}
     >
-      <SyncIcon size={16} />
-      {syncing ? "Syncing..." : "Sync"}
-    </Button>
+      <SyncIcon size={18} className={syncing ? "animate-spin" : undefined} />
+      <span className="sr-only">
+        {syncing ? "Syncing the sources" : "Sync the sources"}
+      </span>
+    </button>
   );
 }
