@@ -135,7 +135,7 @@ export function PageHeader({
           </Link>
         ) : null}
         {meta ? <MetaLine items={meta} /> : null}
-        <h1 className="font-serif text-display text-ink-900">{title}</h1>
+        <h1 className="text-display font-semibold text-ink-900">{title}</h1>
       </div>
       {actions ? (
         <div className="flex items-end gap-3 self-end">{actions}</div>

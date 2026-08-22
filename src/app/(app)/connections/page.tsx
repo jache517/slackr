@@ -29,11 +29,7 @@ export default async function ConnectionsPage() {
           `${projects.length} project${projects.length === 1 ? "" : "s"}`,
           `${projects.length * ALL_SOURCES.length - missing} of ${projects.length * ALL_SOURCES.length} sources connected`,
         ]}
-        title={
-          missing === 0
-            ? "Every source is connected."
-            : `${missing} source${missing === 1 ? " is" : "s are"} not connected.`
-        }
+        title="Connections"
       />
 
       {projects.length === 0 ? (

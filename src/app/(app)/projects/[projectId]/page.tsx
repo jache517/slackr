@@ -23,15 +23,10 @@ export default async function ProjectDashboardPage({
       <PageHeader
         backLink={{ href: "/projects", label: "Back to Projects" }}
         meta={[
-          project.title,
           `Due ${project.dueLabel.replace("due ", "")}`,
           `${passing} of ${checks.length} checks pass`,
         ]}
-        title={
-          openChecks.length === 0
-            ? "Ready to report."
-            : "One thing to settle before you report."
-        }
+        title={project.title}
         actions={
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-3">

@@ -68,13 +68,12 @@ export default async function MemberDetailPage({
           label: "Back to Report",
         }}
         meta={[
-          member.name,
           project.title,
           "1 to 30 Aug 2025",
           `${member.sharePercent}% share`,
           `even split ${evenSplitPercent}%`,
         ]}
-        title={`${firstName} recorded far less activity than the rest of the group.`}
+        title={member.name}
         actions={<AskForContext firstName={firstName} />}
       />
 

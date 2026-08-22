@@ -36,11 +36,7 @@ export default async function MembersPage() {
           `${rows.length} project memberships`,
           unlinked === 0 ? "all accounts linked" : `${unlinked} missing an account`,
         ]}
-        title={
-          unlinked === 0
-            ? "Everyone is linked to their accounts."
-            : `${unlinked} member${unlinked === 1 ? "" : "s"} are missing an account.`
-        }
+        title="Members"
       />
 
       <Card>

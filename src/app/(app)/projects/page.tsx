@@ -87,11 +87,18 @@ function ProjectCard({ project }: { project: ProjectRecord }) {
 
 export default async function ProjectsPage() {
   const projects = await listProjects();
+  const needingAttention = projects.filter(
+    (project) => project.status === "needs_attention",
+  ).length;
 
   return (
     <>
       <PageHeader
-        title="One project needs you this week."
+        meta={[
+          `${projects.length} project${projects.length === 1 ? "" : "s"}`,
+          `${needingAttention} needing attention`,
+        ]}
+        title="Projects"
         actions={
           <ButtonLink href="/projects/new">
             <PlusIcon />

@@ -77,11 +77,8 @@ export function MembersScreen({
   return (
     <>
       <PageHeader
-        title={
-          unmatched
-            ? "One GitHub account isn't matched to anyone."
-            : "Every account is matched."
-        }
+        meta={[title, unmatched ? "1 account unmatched" : "all accounts matched"]}
+        title="Members"
         actions={<Button variant="secondary">Add member</Button>}
       />
 

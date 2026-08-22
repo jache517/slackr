@@ -33,11 +33,7 @@ export default async function ReportsPage() {
           `${ready} ready to report`,
           `${blocked} needing attention`,
         ]}
-        title={
-          blocked === 0
-            ? "Every report is ready."
-            : `${blocked} report${blocked === 1 ? "" : "s"} would understate someone.`
-        }
+        title="Reports"
       />
 
       {ordered.length === 0 ? (

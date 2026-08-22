@@ -41,7 +41,7 @@ export default async function ReportPage({
           `${totals.events} events`,
           `${members.length} members`,
         ]}
-        title={`Three of four members contributed at a similar level.`}
+        title="Contribution report"
         actions={<ExportButton />}
       />
 
