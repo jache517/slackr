@@ -182,10 +182,13 @@ export default async function ProjectDashboardPage({
           },
         ]}
         actions={
-          <ButtonLink href={`/projects/${project.id}/report`} className="group">
-            <SparkleIcon size={18} />
-            Generate report
-          </ButtonLink>
+          <>
+            <SyncButton projectId={project.id} />
+            <ButtonLink href={`/projects/${project.id}/report`} className="group">
+              <SparkleIcon size={18} />
+              Generate report
+            </ButtonLink>
+          </>
         }
       />
 
@@ -241,12 +244,9 @@ export default async function ProjectDashboardPage({
 
       <Card>
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-subhead font-semibold text-ink-900">
-              Connected sources
-            </h2>
-            <SyncButton projectId={project.id} />
-          </div>
+          <h2 className="text-subhead font-semibold text-ink-900">
+            Connected sources
+          </h2>
 
           <ul className="flex list-none flex-col p-0">
             {project.sources.map((source, index) => (
@@ -262,22 +262,35 @@ export default async function ProjectDashboardPage({
 
       <Card>
         <div className="flex flex-col gap-4">
-          <h2 className="text-subhead font-semibold text-ink-900">Members</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-subhead font-semibold text-ink-900">Members</h2>
+            <ButtonLink
+              href={`/projects/${project.id}/members`}
+              variant="secondary"
+            >
+              <MembersIcon size={18} />
+              Match identities
+            </ButtonLink>
+          </div>
 
           <table className="w-full border-collapse text-body">
             <thead>
               <tr className="border-b border-rule text-left">
-                {["Name", "GitHub username", "Google account", "Last active"].map(
-                  (heading) => (
-                    <th
-                      key={heading}
-                      scope="col"
-                      className="py-3 text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500"
-                    >
-                      {heading}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Name",
+                  "GitHub username",
+                  "Google account",
+                  "Last active",
+                  "Actions",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    scope="col"
+                    className="py-3 text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500"
+                  >
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -310,6 +323,14 @@ export default async function ProjectDashboardPage({
                     )}
                   </td>
                   <td className="py-3 text-ink-500">{member.lastActive}</td>
+                  <td className="py-3 text-right">
+                    <Link
+                      href={`/projects/${project.id}/members?memberId=${encodeURIComponent(member.id)}`}
+                      className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
+                    >
+                      Edit role
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

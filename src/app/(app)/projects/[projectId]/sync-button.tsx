@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { SyncIcon } from "@/components/icons";
 import { useToast } from "@/components/toast";
+import { Button } from "@/components/ui";
 
 /**
  * Collect again, now.
@@ -59,22 +60,16 @@ export function SyncButton({ projectId }: { projectId: string }) {
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
       onClick={sync}
       aria-busy={syncing || undefined}
-      aria-disabled={syncing || undefined}
-      title="Sync sources"
-      className={`flex size-9 items-center justify-center rounded-control text-ink-500 transition-colors duration-[120ms] ${
-        syncing
-          ? "cursor-not-allowed text-ink-300"
-          : "hover:bg-surface-page hover:text-ink-900"
-      }`}
+      disabled={syncing}
+      disabledReason={syncing ? "Syncing sources." : undefined}
+      className="shrink-0"
     >
       <SyncIcon size={18} className={syncing ? "animate-spin" : undefined} />
-      <span className="sr-only">
-        {syncing ? "Syncing the sources" : "Sync the sources"}
-      </span>
-    </button>
+      {syncing ? "Syncing..." : "Sync now"}
+    </Button>
   );
 }

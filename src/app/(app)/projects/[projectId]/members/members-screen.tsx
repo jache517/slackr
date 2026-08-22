@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { WarningIcon } from "@/components/icons";
 import { useToast } from "@/components/toast";
@@ -12,10 +13,7 @@ import type {
 } from "@/lib/data/queries";
 
 /**
- * Members, with the match flow and the per-row account edit.
- *
- * Matching is reversible: the toast's `Undo` puts the account card back and
- * returns focus to the select it came from.
+ * Members, with persisted identity matching and per-row account editing.
  *
  * The spec's match-failure state is not built. An unmatched account is by
  * definition one nobody has claimed, so "already linked to someone else"
@@ -23,59 +21,99 @@ import type {
  * once matches are persisted. It belongs with that change, not ahead of it.
  */
 
-type Row = MemberRecord & { extraGithub?: string };
+type Row = MemberRecord;
 
 export function MembersScreen({
+  projectId,
   title,
   members,
   unmatchedAccount,
+  initialEditMemberId,
 }: {
+  projectId: string;
   title: string;
   members: MemberRecord[];
   unmatchedAccount: UnmatchedAccount | null;
+  initialEditMemberId?: string;
 }) {
+  const router = useRouter();
   const showToast = useToast();
 
   const [unmatched, setUnmatched] = useState(unmatchedAccount);
   const [rows, setRows] = useState<Row[]>(members);
   const [choice, setChoice] = useState("");
-  const selectRef = useRef<HTMLSelectElement>(null);
+  const [matching, setMatching] = useState(false);
 
-  function match() {
+  async function match() {
     if (!unmatched || !choice) return;
 
     const member = rows.find((row) => row.id === choice);
     const account = unmatched;
 
-    setUnmatched(null);
-    setChoice("");
-
-    if (member) {
-      setRows((current) =>
-        current.map((row) =>
-          row.id === member.id ? { ...row, extraGithub: account.handle } : row,
-        ),
-      );
+    if (!member) {
+      showToast({ message: "Choose a project member to save this match." });
+      return;
     }
 
-    showToast({
-      message: member
-        ? `${account.handle} is now linked to ${member.name}. ${account.commits} commits will be counted for them.`
-        : `${account.handle} is marked as nobody's. Its ${account.commits} commits stay out of the report.`,
-      onUndo: () => {
-        setUnmatched(account);
-        if (member) {
-          setRows((current) =>
-            current.map((row) =>
-              row.id === member.id ? { ...row, extraGithub: undefined } : row,
-            ),
-          );
-        }
-        showToast({ message: "Match undone." });
-        // The card is back; focus returns to the control it was chosen from.
-        requestAnimationFrame(() => selectRef.current?.focus());
-      },
-    });
+    setMatching(true);
+
+    try {
+      const response = await fetch(`/api/members/${member.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ githubUsername: account.handle }),
+      });
+      const payload: unknown = await response.json().catch(() => null);
+
+      if (!response.ok || !isMemberIdentityResponse(payload)) {
+        throw new Error(
+          isApiErrorResponse(payload)
+            ? payload.error.message
+            : "The GitHub identity could not be saved.",
+        );
+      }
+
+      setRows((current) =>
+        current.map((row) =>
+          row.id === member.id
+            ? {
+                ...row,
+                githubUsername: payload.data.githubUsername ?? account.handle,
+              }
+            : row,
+        ),
+      );
+
+      const syncResponse = await fetch(`/api/projects/${projectId}/sync`, {
+        method: "POST",
+      });
+      const syncPayload: unknown = await syncResponse.json().catch(() => null);
+
+      if (!syncResponse.ok) {
+        showToast({
+          message: isApiErrorResponse(syncPayload)
+            ? `${account.handle} was linked, but activity refresh failed: ${syncPayload.error.message}`
+            : `${account.handle} was linked. Use Sync now on the project page to refresh activity.`,
+        });
+        return;
+      }
+
+      setUnmatched(null);
+      setChoice("");
+      router.refresh();
+      showToast({
+        message: `${account.handle} is now linked to ${member.name}; activity was refreshed.`,
+      });
+    } catch (matchError) {
+      showToast({
+        message:
+          matchError instanceof Error
+            ? matchError.message
+            : "The GitHub identity could not be saved.",
+      });
+    } finally {
+      setMatching(false);
+    }
   }
 
   return (
@@ -116,7 +154,6 @@ export function MembersScreen({
                     Match to a member
                   </label>
                   <select
-                    ref={selectRef}
                     id="match-1"
                     value={choice}
                     onChange={(event) => setChoice(event.target.value)}
@@ -133,15 +170,21 @@ export function MembersScreen({
                         {member.name}
                       </option>
                     ))}
-                    <option value="none">Not a member of this project</option>
                   </select>
                 </div>
                 <Button
                   onClick={match}
-                  disabledReason={choice ? undefined : "Choose a member first."}
+                  disabled={matching}
+                  disabledReason={
+                    matching
+                      ? "Saving the match."
+                      : choice
+                        ? undefined
+                        : "Choose a member first."
+                  }
                   aria-describedby="match-reason"
                 >
-                  Match
+                  {matching ? "Matching..." : "Match"}
                 </Button>
               </div>
               {/* Reserved height so revealing the reason never moves the row. */}
@@ -162,7 +205,11 @@ export function MembersScreen({
         </div>
       </Card>
 
-      <RoleContextSection rows={rows} setRows={setRows} />
+      <RoleContextSection
+        rows={rows}
+        setRows={setRows}
+        initialEditMemberId={initialEditMemberId}
+      />
     </>
   );
 }
@@ -227,7 +274,7 @@ function RosterTable({
                 );
                 setEditing(null);
                 showToast({
-                  message: `${member.name} is now linked to ${next.githubUsername}.`,
+                  message: `Identity mapping saved for ${member.name}. Use Sync now to refresh activity.`,
                 });
               }}
             />
@@ -243,11 +290,6 @@ function RosterTable({
               </th>
               <td className={cell(last)}>
                 {member.githubUsername}
-                {member.extraGithub ? (
-                  <span className="block text-ink-900">
-                    {member.extraGithub}
-                  </span>
-                ) : null}
               </td>
               <td className={cell(last)}>{member.googleEmail}</td>
               <td className={`py-3.5 ${last ? "" : "border-b border-rule"}`}>
@@ -287,7 +329,47 @@ function EditRow({
 }) {
   const [github, setGithub] = useState(member.githubUsername);
   const [google, setGoogle] = useState(member.googleEmail);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const edge = last ? "" : "border-b border-rule";
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/members/${member.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          githubUsername: github.trim() || null,
+          googleEmail: google.trim() || null,
+        }),
+      });
+      const payload: unknown = await response.json().catch(() => null);
+
+      if (!response.ok || !isMemberIdentityResponse(payload)) {
+        throw new Error(
+          isApiErrorResponse(payload)
+            ? payload.error.message
+            : "Member identities could not be saved.",
+        );
+      }
+
+      onSave({
+        githubUsername: payload.data.githubUsername ?? "",
+        googleEmail: payload.data.googleEmail ?? "",
+      });
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Member identities could not be saved.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <tr className="bg-tint-indigo">
@@ -321,22 +403,30 @@ function EditRow({
         />
       </td>
       <td className={`py-3 ${edge}`}>
-        <div className="flex gap-2">
-          <Button
-            className="min-h-8! px-3!"
-            onClick={() =>
-              onSave({ githubUsername: github, googleEmail: google })
-            }
-          >
-            Save
-          </Button>
-          <Button
-            variant="secondary"
-            className="min-h-8! px-3!"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
+        <div className="flex flex-col items-start gap-2">
+          {error ? (
+            <p role="alert" className="text-body text-red-700">
+              {error}
+            </p>
+          ) : null}
+          <div className="flex gap-2">
+            <Button
+              className="min-h-8! px-3!"
+              onClick={save}
+              disabled={saving}
+              disabledReason={saving ? "Saving member identities." : undefined}
+            >
+              {saving ? "Saving..." : "Save"}
+            </Button>
+            <Button
+              variant="secondary"
+              className="min-h-8! px-3!"
+              onClick={onCancel}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </td>
     </tr>
@@ -346,12 +436,16 @@ function EditRow({
 function RoleContextSection({
   rows,
   setRows,
+  initialEditMemberId,
 }: {
   rows: Row[];
   setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+  initialEditMemberId?: string;
 }) {
   const showToast = useToast();
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(
+    initialEditMemberId ?? null,
+  );
 
   return (
     <Card>
@@ -614,6 +708,23 @@ function isRoleContextResponse(
     (data.submissionType === "memberSelfReported" ||
       data.submissionType === "projectOwnerRecorded") &&
     typeof data.updatedAt === "string"
+  );
+}
+
+function isMemberIdentityResponse(
+  value: unknown,
+): value is {
+  data: {
+    githubUsername: string | null;
+    googleEmail: string | null;
+  };
+} {
+  if (!isRecord(value) || !isRecord(value.data)) return false;
+
+  const data = value.data;
+  return (
+    (data.githubUsername === null || typeof data.githubUsername === "string") &&
+    (data.googleEmail === null || typeof data.googleEmail === "string")
   );
 }
 
