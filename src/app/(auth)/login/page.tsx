@@ -1,15 +1,24 @@
-import { Suspense } from "react";
-
 import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Sign in - Slackr" };
 
-export default function LoginPage() {
-  // The form reads search params to show "account created" and "password
-  // updated" notices, which opts it out of prerendering without a boundary.
+/**
+ * The notices are read here rather than in the form. Reading them client-side
+ * would put the whole form behind a Suspense boundary, which ships the sign-in
+ * screen as an empty card until JavaScript arrives.
+ */
+export default async function LoginPage({
+  searchParams,
+}: PageProps<"/login">) {
+  const params = await searchParams;
+  const first = (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value;
+
   return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
+    <LoginForm
+      registered={first(params.registered) === "1"}
+      reset={first(params.reset) === "1"}
+      linkProblem={first(params.error) ?? null}
+    />
   );
 }

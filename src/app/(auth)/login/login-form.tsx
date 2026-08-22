@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { AuthCard, FormError, FormNotice } from "@/components/auth/auth-card";
 import { PasswordField, TextField } from "@/components/auth/fields";
@@ -16,17 +16,20 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
  * The password never reaches this app's own storage: Supabase Auth holds the
  * hash and hands back a session.
  */
-export function LoginForm() {
+export function LoginForm({
+  registered = false,
+  reset = false,
+  linkProblem = null,
+}: {
+  registered?: boolean;
+  reset?: boolean;
+  linkProblem?: string | null;
+}) {
   const router = useRouter();
-  const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const justRegistered = params.get("registered") === "1";
-  const justReset = params.get("reset") === "1";
-  const linkProblem = params.get("error");
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault();
@@ -75,11 +78,11 @@ export function LoginForm() {
       }
     >
       <form onSubmit={signIn} noValidate className="flex flex-col gap-6">
-        {justRegistered ? (
+        {registered ? (
           <FormNotice>Account created. Sign in to get started.</FormNotice>
         ) : null}
 
-        {justReset ? (
+        {reset ? (
           <FormNotice>Password updated. Sign in with it now.</FormNotice>
         ) : null}
 
