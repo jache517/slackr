@@ -11,6 +11,7 @@ import {
   ReportsIcon,
   SettingsIcon,
 } from "@/components/icons";
+import { UserMenu } from "@/components/user-menu";
 
 const NAV = [
   { key: "projects", label: "Projects", href: "/projects", Icon: ProjectsIcon },
@@ -38,7 +39,7 @@ function currentKey(pathname: string) {
   return "projects";
 }
 
-export function AppSidebar() {
+export function AppSidebar({ email }: { email: string | null }) {
   const pathname = usePathname() ?? "/projects";
   const active = currentKey(pathname);
 
@@ -88,25 +89,7 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      <Link
-        href="/settings/account"
-        className="flex items-center gap-3 rounded-control border-t border-rule p-3 no-underline transition-colors duration-[120ms] hover:bg-surface-page"
-      >
-        <span
-          aria-hidden
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-tint-indigo text-eyebrow font-semibold uppercase tracking-[0.06em] text-indigo-600"
-        >
-          SC
-        </span>
-        <span className="min-w-0">
-          <span className="block text-body font-semibold text-ink-900">
-            Sheldon Chen
-          </span>
-          <span className="block truncate text-body font-normal text-ink-500">
-            sheldon.chen@unitech.edu.au
-          </span>
-        </span>
-      </Link>
+      <UserMenu email={email} />
     </div>
   );
 }

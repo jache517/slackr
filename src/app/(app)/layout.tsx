@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/auth/require-session";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   // Every screen under this layout needs a signed-in owner. RLS still decides
   // which rows they see; this only decides whether they get a page at all.
-  await requireSession();
+  const { user } = await requireSession();
 
   return (
     <ToastProvider>
@@ -16,7 +16,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         >
           Skip to main content
         </a>
-        <AppSidebar />
+        <AppSidebar email={user.email} />
         <main
           id="main"
           tabIndex={-1}
