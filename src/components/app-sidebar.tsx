@@ -9,7 +9,6 @@ import {
   MembersIcon,
   ProjectsIcon,
   ReportsIcon,
-  SettingsIcon,
 } from "@/components/icons";
 import { UserMenu } from "@/components/user-menu";
 
@@ -23,7 +22,6 @@ const NAV = [
     href: "/connections",
     Icon: ConnectionsIcon,
   },
-  { key: "settings", label: "Settings", href: "/settings", Icon: SettingsIcon },
 ];
 
 /**
@@ -35,7 +33,9 @@ function currentKey(pathname: string) {
   if (pathname.includes("/members")) return "members";
   if (pathname.startsWith("/projects")) return "projects";
   if (pathname.startsWith("/connections")) return "connections";
-  if (pathname.startsWith("/settings")) return "settings";
+  // Settings has no nav item: it is reached from the account menu, so no
+  // item should light up while it is open.
+  if (pathname.startsWith("/settings")) return "none";
   return "projects";
 }
 
