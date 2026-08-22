@@ -11,8 +11,10 @@
 
 begin;
 
-insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@slackr.test', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, false)
+-- GoTrue reads these token columns directly and rejects nulls, so the
+-- empty strings below are required rather than tidiness.
+insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous, confirmation_token, recovery_token, email_change_token_new, email_change_token_current, email_change, phone_change, phone_change_token, reauthentication_token)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@slackr.test', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, false, '', '', '', '', '', '', '', '')
 on conflict (id) do nothing;
 
 -- COMP30022 Final Project
