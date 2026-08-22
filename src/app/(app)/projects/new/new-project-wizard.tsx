@@ -10,6 +10,7 @@ import { Button, Card } from "@/components/ui";
 import { ConnectSourcesStep } from "./connect-sources-step";
 import {
   emptyDraft,
+  memberPayload,
   validateMembers,
   validateProjectInfo,
   validateSources,
@@ -19,8 +20,9 @@ import {
 } from "./draft";
 import { MembersStep } from "./members-step";
 import { ProjectInfoStep } from "./project-info-step";
+import { ReviewStep } from "./review-step";
 import { Stepper } from "./stepper";
-import { STEPS, type StepIndex } from "./steps";
+import { LAST_STEP, STEPS, type StepIndex } from "./steps";
 
 /**
  * New Project, as four steps over one draft.
@@ -38,6 +40,41 @@ import { STEPS, type StepIndex } from "./steps";
  * the wizard mounts and cleared immediately after.
  */
 let pendingRestore: Draft | null = null;
+
+type PostResult =
+  | { ok: true; data: Record<string, unknown> }
+  | { ok: false; message: string };
+
+/**
+ * One POST, with the API's own message carried back. The wizard shows what
+ * the server said rather than a message of its own: the server knows why it
+ * refused and the reader is the person who can act on it.
+ */
+async function post(url: string, body: unknown): Promise<PostResult> {
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    return { ok: false, message: "The network request did not reach Slackr." };
+  }
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === "object" && "error" in payload
+        ? ((payload.error as { message?: string })?.message ?? null)
+        : null;
+    return { ok: false, message: message ?? "The request could not be completed." };
+  }
+
+  return { ok: true, data: (payload?.data ?? {}) as Record<string, unknown> };
+}
 
 const NEXT_LABEL = [
   "Next: members",
@@ -61,6 +98,8 @@ export function NewProjectWizard() {
   );
   const [sourceErrors, setSourceErrors] = useState<SourceErrors>({});
   const [discarding, setDiscarding] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   const fields = useRef(new Map<string, HTMLElement>());
   const panelRef = useRef<HTMLDivElement>(null);
@@ -99,6 +138,7 @@ export function NewProjectWizard() {
     setInfoErrors({});
     setMemberErrors(new Map());
     setSourceErrors({});
+    setFailure(null);
   }
 
   function goTo(next: StepIndex) {
@@ -161,20 +201,110 @@ export function NewProjectWizard() {
   }
 
   function next() {
-    if (!checkCurrentStep()) return;
+    if (creating || !checkCurrentStep()) return;
 
-    if (step === 2) {
-      // Step 4 is not built yet, so the flow stops here rather than
-      // pretending the project was created.
-      showToast({ message: "Reviewing and creating is step 4, still to come." });
+    if (step === LAST_STEP) {
+      void create();
       return;
     }
 
     goTo((step + 1) as StepIndex);
   }
 
+  /**
+   * The only write in the flow, and the only place the draft leaves the
+   * browser. The project has to exist before members or sources can hang off
+   * it, so a later failure leaves a real project behind: when that happens
+   * the wizard says what did not land and drops the reader on the screen
+   * where they can finish it, rather than reporting a clean success or
+   * silently discarding the rest.
+   */
+  async function create() {
+    setCreating(true);
+    setFailure(null);
+
+    const project = await post("/api/projects", {
+      title: draft.title.trim(),
+      deadline: draft.dueDate,
+    });
+
+    if (!project.ok) {
+      setCreating(false);
+      setFailure(`The project was not created: ${project.message}`);
+      return;
+    }
+
+    const projectId = String(project.data.id);
+
+    for (const member of draft.members) {
+      const created = await post(
+        `/api/projects/${projectId}/members`,
+        memberPayload(member),
+      );
+
+      if (!created.ok) {
+        setCreating(false);
+        showToast({
+          message: `${draft.title.trim()} was created, but ${member.name.trim()} was not added: ${created.message}`,
+        });
+        router.push(`/projects/${projectId}/members`);
+        router.refresh();
+        return;
+      }
+    }
+
+    const githubUrl = draft.githubUrl.trim();
+
+    if (githubUrl) {
+      const connected = await post(
+        `/api/projects/${projectId}/sources/github`,
+        { repositoryUrl: githubUrl },
+      );
+
+      if (!connected.ok) {
+        setCreating(false);
+        showToast({
+          message: `Project and members created. The repository was not connected: ${connected.message}`,
+        });
+        router.push(`/projects/${projectId}`);
+        router.refresh();
+        return;
+      }
+    }
+
+    const googleDocUrl = draft.googleDocUrl.trim();
+
+    if (googleDocUrl) {
+      const intent = await post(`/api/projects/${projectId}/sources/google`, {
+        documentUrl: googleDocUrl,
+      });
+
+      // Google will not hand over document activity without the owner saying
+      // so, so the last thing the flow does is go and ask.
+      if (intent.ok && typeof intent.data.authorizationUrl === "string") {
+        window.location.assign(intent.data.authorizationUrl);
+        return;
+      }
+
+      setCreating(false);
+      showToast({
+        message: intent.ok
+          ? "Project created. Connect the Google Doc from the project when you are ready."
+          : `Project created. The Google Doc was not connected: ${intent.message}`,
+      });
+      router.push(`/projects/${projectId}`);
+      router.refresh();
+      return;
+    }
+
+    setCreating(false);
+    showToast({ message: `${draft.title.trim()} is ready.` });
+    router.push(`/projects/${projectId}`);
+    router.refresh();
+  }
+
   function back() {
-    if (step === 0) return;
+    if (creating || step === 0) return;
     goTo((step - 1) as StepIndex);
   }
 
@@ -240,6 +370,15 @@ export function NewProjectWizard() {
                 registerField={registerField}
               />
             ) : null}
+
+            {step === LAST_STEP ? (
+              <ReviewStep
+                draft={draft}
+                failure={failure}
+                creating={creating}
+                onEdit={goTo}
+              />
+            ) : null}
           </div>
 
           <hr className="border-0 border-t border-rule" />
@@ -247,15 +386,34 @@ export function NewProjectWizard() {
           <div className="flex flex-col gap-2">
             <div className="flex gap-3">
               {step > 0 ? (
-                <Button variant="secondary" onClick={back}>
+                <Button
+                  variant="secondary"
+                  onClick={back}
+                  disabledReason={
+                    creating ? "The project is being created." : undefined
+                  }
+                >
                   Back
                 </Button>
               ) : null}
-              <Button type="submit">{NEXT_LABEL[step]}</Button>
+              <Button
+                type="submit"
+                aria-busy={creating || undefined}
+                disabledReason={
+                  creating ? "The project is being created." : undefined
+                }
+              >
+                {creating ? "Creating..." : NEXT_LABEL[step]}
+              </Button>
               <Button
                 variant="quiet"
                 aria-describedby="cancel-note"
-                onClick={() => setDiscarding(true)}
+                disabledReason={
+                  creating ? "The project is being created." : undefined
+                }
+                onClick={() => {
+                  if (!creating) setDiscarding(true);
+                }}
               >
                 Cancel
               </Button>
