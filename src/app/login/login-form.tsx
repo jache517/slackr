@@ -49,9 +49,7 @@ export function LoginForm() {
     <Card className="w-full max-w-110">
       <form onSubmit={signIn} className="flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <span className="flex size-8 items-center justify-center rounded-tile bg-indigo-600">
-            <LogoMark />
-          </span>
+          <LogoMark className="shrink-0" />
           <span className="text-section font-semibold text-ink-900">Slackr</span>
         </div>
 

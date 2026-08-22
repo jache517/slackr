@@ -53,9 +53,7 @@ export function AppSidebar({ email }: { email: string | null }) {
         aria-label="Slackr home"
         className="flex items-center gap-3 px-3 no-underline"
       >
-        <span className="flex size-8 items-center justify-center rounded-tile bg-indigo-600">
-          <LogoMark />
-        </span>
+        <LogoMark className="shrink-0" />
         <span className="text-section font-semibold text-ink-900">Slackr</span>
       </Link>
 

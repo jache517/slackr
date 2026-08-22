@@ -25,6 +25,10 @@
   --color-indigo-800: #362c9c;
   --color-indigo-focus: #2a21a8;
 
+  /* Brand mark */
+  --color-brand-600: #7137b6;
+  --color-brand-200: #c1a9ee;
+
   /* Status */
   --color-amber-800: #7a4a00;
   --color-green-800: #146b3a;

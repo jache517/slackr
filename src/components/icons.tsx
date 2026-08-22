@@ -195,13 +195,52 @@ export function QuoteIcon({ size = 18, className }: IconProps) {
   );
 }
 
-export function LogoMark({ size = 18 }: IconProps) {
+/** Left edge of each of the mark's three columns and rows, on a 96 unit grid. */
+const LOGO_STEPS = [4, 34.5, 65];
+
+/** The squares the mark fills in, as [column, row] pairs. */
+const LOGO_FILLED = [
+  [1, 0],
+  [2, 0],
+  [1, 1],
+  [0, 2],
+  [1, 2],
+];
+
+export function LogoMark({ size = 32, className }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>
-      <rect x="2" y="3" width="8" height="2.6" rx="1.3" fill="#ffffff" />
-      <rect x="2" y="7.7" width="13" height="2.6" rx="1.3" fill="#ffffff" />
-      <rect x="2" y="12.4" width="5" height="2.6" rx="1.3" fill="#ffffff" />
-      <circle cx="16" cy="9" r="1.5" fill="#ffffff" />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 96 96"
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      <rect
+        x="0.5"
+        y="0.5"
+        width="95"
+        height="95"
+        stroke="var(--color-ink-900)"
+        strokeOpacity="0.16"
+      />
+      {LOGO_STEPS.flatMap((x, col) =>
+        LOGO_STEPS.map((y, row) => {
+          const filled = LOGO_FILLED.some(([c, r]) => c === col && r === row);
+          return (
+            <rect
+              key={`${col}-${row}`}
+              x={x}
+              y={y}
+              width="28"
+              height="28"
+              fill={filled ? "var(--color-brand-600)" : "var(--color-ink-900)"}
+              fillOpacity={filled ? undefined : 0.1}
+            />
+          );
+        }),
+      )}
     </svg>
   );
 }
