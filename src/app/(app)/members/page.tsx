@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { GithubMark, GoogleMark } from "@/components/icons";
-import { Badge, ButtonLink, Card, PageHeader } from "@/components/ui";
+import { ChevronRightIcon, GithubMark, GoogleMark } from "@/components/icons";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import { listProjects } from "@/lib/data/queries";
 
 export const metadata = { title: "Members - Slackr" };
@@ -45,7 +45,6 @@ export default async function MembersPage() {
     { key: "github", label: "GitHub account", mark: <GithubMark size={16} /> },
     { key: "google", label: "Google account", mark: <GoogleMark size={16} /> },
     { key: "status", label: "Status", mark: null },
-    { key: "action", label: "Action", mark: null },
   ];
 
   return (
@@ -67,11 +66,11 @@ export default async function MembersPage() {
         ) : (
           <table className="w-full border-collapse">
             <colgroup>
-              <col className="w-[30%]" />
-              <col className="w-[20%]" />
-              <col className="w-[26%]" />
-              <col className="w-[12%]" />
-              <col className="w-[12%]" />
+              <col className="w-[32%]" />
+              <col className="w-[21%]" />
+              <col className="w-[27%]" />
+              <col className="w-[13%]" />
+              <col className="w-[7%]" />
             </colgroup>
             <thead>
               <tr>
@@ -87,6 +86,12 @@ export default async function MembersPage() {
                     </span>
                   </th>
                 ))}
+                <th
+                  scope="col"
+                  className="border-b border-ink-300 pb-3 text-right text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500"
+                >
+                  <span className="sr-only">Edit</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -138,13 +143,17 @@ export default async function MembersPage() {
                       </Badge>
                     </td>
 
-                    <td className={`py-4 ${edge}`}>
-                      <ButtonLink
+                    <td className={`py-4 text-right ${edge}`}>
+                      <Link
                         href={`/projects/${project.id}/members`}
-                        variant="secondary"
+                        className="inline-flex items-center gap-1 text-body font-medium text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
                       >
                         Edit
-                      </ButtonLink>
+                        <span className="sr-only">
+                          {`${member.name} in ${project.title}`}
+                        </span>
+                        <ChevronRightIcon size={14} />
+                      </Link>
                     </td>
                   </tr>
                 );
