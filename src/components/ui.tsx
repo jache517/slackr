@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-import { CheckIcon, ClockIcon, WarningIcon } from "@/components/icons";
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  ClockIcon,
+  WarningIcon,
+} from "@/components/icons";
 import type { TrendDirection } from "@/lib/data/types";
 
 /* ---------- Button ---------- */
@@ -163,6 +168,7 @@ export function PageHeader({
             href={backLink.href}
             className="inline-flex w-fit items-center gap-2 rounded-control text-body font-medium text-indigo-600 no-underline hover:text-indigo-700 hover:underline underline-offset-2"
           >
+            <ArrowLeftIcon size={16} />
             {backLink.label}
           </Link>
         ) : null}

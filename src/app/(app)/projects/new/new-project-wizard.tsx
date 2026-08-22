@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Dialog } from "@/components/dialog";
+import { ArrowLeftIcon } from "@/components/icons";
 import { useToast } from "@/components/toast";
 import { Button, Card } from "@/components/ui";
 
@@ -399,6 +400,7 @@ export function NewProjectWizard() {
                     creating ? "The project is being created." : undefined
                   }
                 >
+                  <ArrowLeftIcon size={16} />
                   Back
                 </Button>
               ) : null}
