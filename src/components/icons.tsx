@@ -245,6 +245,28 @@ export function LogoMark({ size = 32, className }: IconProps) {
   );
 }
 
+/* ---------- Password visibility ---------- */
+
+export function EyeIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M1.5 9S4.5 3.5 9 3.5 16.5 9 16.5 9 13.5 14.5 9 14.5 1.5 9 1.5 9Z" />
+      <circle cx="9" cy="9" r="2.4" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M7.3 4A6.9 6.9 0 0 1 9 3.5c4.5 0 7.5 5.5 7.5 5.5a14 14 0 0 1-2.3 3" />
+      <path d="M4.4 5.7A14.4 14.4 0 0 0 1.5 9S4.5 14.5 9 14.5a6.8 6.8 0 0 0 2.9-.65" />
+      <path d="M7.6 7.6a2.4 2.4 0 0 0 3.35 3.43" />
+      <path d="m2.5 2.5 13 13" />
+    </svg>
+  );
+}
+
 /* ---------- Calendar ---------- */
 
 export function CalendarIcon({ size = 18, className }: IconProps) {
