@@ -52,7 +52,7 @@ Docker must be running.
 - `src/lib/data/queries.ts` - the Supabase reads and the assembly
 - `src/lib/auth/require-session.ts` - cached per render, redirects to login
 - `src/components/toast.tsx`, `dialog.tsx`, `user-menu.tsx` - interaction parts
-- `supabase/seed.sql` - generated; timestamps relative to `now()`
+- `supabase/seeds/02_demo_data.sql` - generated; timestamps relative to `now()`
 - `design/FINAL_DESIGN.md` - the merge spec the six project screens follow
 
 ## Not done yet

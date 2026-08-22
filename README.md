@@ -81,6 +81,38 @@ exercises the states the screens were designed for.
 
 Run `npm run check` (lint + build) before pushing.
 
+### Demo data on a deployed site
+
+The seed is split so credentials never leave the local stack:
+
+| File | Contents | Safe to run on a hosted database |
+|------|----------|----------------------------------|
+| `supabase/seeds/01_local_demo_account.sql` | `owner@slackr.test` and its plain-text password | **No** |
+| `supabase/seeds/02_demo_data.sql` | the three projects and their activity | Yes |
+
+`supabase db reset` runs both, and only ever against the local stack. Never run
+`01` against a hosted database: it would put a password that is published in
+this repo on a live site.
+
+To show the sample projects on a deploy, create the account yourself, with a
+password that is not in the repo, then hand its address to the data seed:
+
+1. Push the schema: `npx supabase db push`.
+2. In the Supabase dashboard, **Authentication → Users → Add user**, with
+   *Auto Confirm User* on.
+3. Load the data, naming that account:
+
+   ```bash
+   psql "$SLACKR_DB_URL" -v ON_ERROR_STOP=1 \
+     -c "set slackr.demo_owner_email = 'you@example.com'" \
+     -f supabase/seeds/02_demo_data.sql
+   ```
+
+Every RLS policy keys on `projects.created_by`, so the rows are visible only to
+the account named there. Get the address wrong and the seed stops with
+`Demo owner ... has no account in auth.users` rather than loading data nobody
+can see.
+
 ## Where the work stands
 
 Every screen reads live data from Supabase. Nothing writes to it yet.
@@ -97,7 +129,7 @@ magic-link-free email/password auth with route protection, the read layer in
    one: it should set `github_activity.member_id` for every row carrying that
    `author_username`.
 2. **Collectors.** No GitHub, Docs or Meet data is ever fetched; it all comes
-   from `supabase/seed.sql`. The tables they must fill are `github_activity`,
+   from `supabase/seeds/02_demo_data.sql`. The tables they must fill are `github_activity`,
    `docs_activity`, `meetings` and `meeting_attendance`.
 3. **New Project step 2**, connecting the tools, and the invite flow.
 4. **Member-level access.** Every RLS policy keys on `projects.created_by`, so
