@@ -82,7 +82,6 @@ export async function insertGithubActivityRows(
     .from("github_activity")
     .upsert(rows, {
       onConflict: "source_connection_id,commit_sha",
-      ignoreDuplicates: true,
     });
 
   if (error) {
