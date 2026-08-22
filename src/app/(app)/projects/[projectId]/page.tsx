@@ -2,7 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
+  CalendarIcon,
+  ClockIcon,
   ConnectionsIcon,
+  GithubMark,
+  GoogleDocsMark,
+  GoogleMeetMark,
   MembersIcon,
   ReportsIcon,
   WarningIcon,
@@ -36,11 +41,10 @@ const STATUS: Record<ProjectStatus, { tone: BadgeTone; label: string }> = {
   too_early: { tone: "early", label: "Too early" },
 };
 
-/** Short codes stand in for provider logos, which are not ours to draw. */
-const SOURCE_CODES: Record<SourceKey, string> = {
-  github: "GH",
-  google_docs: "GD",
-  google_meet: "GM",
+const SOURCE_MARKS: Record<SourceKey, React.ComponentType<{ size?: number }>> = {
+  github: GithubMark,
+  google_docs: GoogleDocsMark,
+  google_meet: GoogleMeetMark,
 };
 
 function StatCard({
@@ -84,36 +88,46 @@ function SourceRow({
   source: SourceRecord;
   last: boolean;
 }) {
+  const Mark = SOURCE_MARKS[source.key];
+
   return (
     <li
-      className={`grid grid-cols-[40px_180px_1fr_auto_150px] items-center gap-4 py-4 ${
+      className={`grid grid-cols-[36px_150px_minmax(0,1fr)_140px_1fr] items-center gap-4 py-4 ${
         last ? "pb-0" : "border-b border-rule"
       }`}
     >
-      <span
-        aria-hidden
-        className="flex size-10 items-center justify-center rounded-tile bg-surface-track text-eyebrow font-semibold tracking-[0.06em] text-ink-700"
-      >
-        {SOURCE_CODES[source.key]}
+      <span className="flex size-9 items-center justify-center">
+        <Mark size={22} />
       </span>
 
       <span className="text-body font-medium text-ink-900">{source.label}</span>
 
-      <span className="min-w-0 truncate text-body text-ink-500">
-        {source.displayName ?? "Not connected"}
+      <span className="min-w-0 truncate text-body">
+        {source.url && source.displayName ? (
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
+          >
+            {source.displayName}
+          </a>
+        ) : source.displayName ? (
+          <span className="text-indigo-600">{source.displayName}</span>
+        ) : (
+          <span className="text-ink-500">Not connected</span>
+        )}
       </span>
 
-      {source.connected ? (
-        <Badge tone="ok">Connected</Badge>
-      ) : (
-        <ButtonLink
-          href="/connections"
-          variant="secondary"
-          className="justify-self-start"
-        >
-          Connect
-        </ButtonLink>
-      )}
+      <span className="justify-self-start">
+        {source.connected ? (
+          <Badge tone="ok">Connected</Badge>
+        ) : (
+          <ButtonLink href="/connections" variant="secondary">
+            Connect
+          </ButtonLink>
+        )}
+      </span>
 
       <span className="text-right text-body text-ink-500">
         {source.lastSyncLabel ? `Last sync: ${source.lastSyncLabel}` : ""}
@@ -145,10 +159,19 @@ export default async function ProjectDashboardPage({
         backLink={{ href: "/projects", label: "Back to Projects" }}
         title={project.title}
         badge={<Badge tone={status.tone}>{status.label}</Badge>}
-        meta={[
-          `${project.memberCount} members`,
-          `Deadline: ${project.deadlineLabel}`,
-          `Last updated: ${project.lastCollected}`,
+        facts={[
+          {
+            icon: <MembersIcon size={16} />,
+            text: `${project.memberCount} members`,
+          },
+          {
+            icon: <CalendarIcon size={16} />,
+            text: `Deadline: ${project.deadlineLabel}`,
+          },
+          {
+            icon: <ClockIcon size={16} />,
+            text: `Last updated: ${project.lastCollectedLabel}`,
+          },
         ]}
         actions={
           <ButtonLink href={`/projects/${project.id}/report`}>

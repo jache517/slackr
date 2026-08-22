@@ -9,8 +9,10 @@ import {
   fullDate,
   initialsOf,
   lastActiveLabel,
+  longDate,
   shortDate,
   slugify,
+  sourceUrl,
   syncLabel,
   trendOf,
   ALL_SOURCE_KEYS,
@@ -106,7 +108,9 @@ async function fetchProjects(projectIds?: string[]) {
         .order("name", { ascending: true }),
       supabase
         .from("source_connections")
-        .select("id, project_id, source_type, display_name, last_synced_at")
+        .select(
+          "id, project_id, source_type, external_id, display_name, last_synced_at",
+        )
         .in("project_id", ids),
       supabase
         .from("github_activity")
@@ -148,6 +152,7 @@ type Rows = {
   sources: {
     project_id: string;
     source_type: string;
+    external_id: string;
     display_name: string;
     last_synced_at: string | null;
   }[];
@@ -240,6 +245,8 @@ function assemble(
       label: SOURCE_LABELS[key],
       connected: Boolean(row),
       displayName: row?.display_name ?? null,
+      externalId: row?.external_id ?? null,
+      url: sourceUrl(key, row?.external_id ?? null),
       lastSyncLabel: syncLabel(row?.last_synced_at ?? null, now),
     };
   });
@@ -271,6 +278,7 @@ function assemble(
     unmatchedAccount,
     meetingsHeld: mine(rows.meetings).length,
     lastCollected: lastSynced ? shortDate(lastSynced) : "Not yet",
+    lastCollectedLabel: lastSynced ? longDate(lastSynced) : "Not yet",
     deadlineLabel: fullDate(project.deadline),
     coveragePercent:
       members.length === 0

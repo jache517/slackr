@@ -54,6 +54,10 @@ export type SourceRecord = {
   connected: boolean;
   /** The repository or document as the provider names it. */
   displayName: string | null;
+  /** `owner/repo` for GitHub, the document id for Docs. */
+  externalId: string | null;
+  /** Where the source lives, when the provider has an addressable page. */
+  url: string | null;
   lastSyncLabel: string | null;
 };
 
@@ -79,6 +83,7 @@ export type ProjectRecord = {
   unmatchedAccount: UnmatchedAccount | null;
   meetingsHeld: number;
   lastCollected: string;
+  lastCollectedLabel: string;
   deadlineLabel: string;
   /**
    * The share of members with at least one recorded event. It says how much
@@ -188,12 +193,31 @@ export function syncLabel(at: string | null, now: number) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+/** A timestamp as a date a reader can say out loud: "22 Aug 2026". */
+export function longDate(at: string) {
+  return new Date(at).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export function fullDate(at: string) {
   return new Date(`${at}T00:00:00`).toLocaleDateString("en-AU", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+}
+
+/** The provider's own page for a source, when it has one. Meet does not. */
+export function sourceUrl(key: SourceKey, externalId: string | null) {
+  if (!externalId) return null;
+  if (key === "github") return `https://github.com/${externalId}`;
+  if (key === "google_docs") {
+    return `https://docs.google.com/document/d/${externalId}`;
+  }
+  return null;
 }
 
 export function shortDate(at: string) {

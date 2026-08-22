@@ -112,11 +112,38 @@ export function MetaLine({ items }: { items: string[] }) {
   );
 }
 
+/** A fact about the page's subject, stated under the title with its glyph. */
+export function FactLine({
+  items,
+}: {
+  items: { icon: ReactNode; text: string }[];
+}) {
+  return (
+    <p className="flex flex-wrap items-center gap-3 text-body text-ink-500">
+      {items.map((item, index) => (
+        <span key={item.text} className="flex items-center gap-2">
+          {index > 0 ? (
+            <span
+              aria-hidden
+              className="mr-1 inline-block size-[3px] rounded-full bg-ink-300"
+            />
+          ) : null}
+          <span aria-hidden className="text-ink-500">
+            {item.icon}
+          </span>
+          {item.text}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 export function PageHeader({
   backLink,
   meta,
   title,
   badge,
+  facts,
   actions,
 }: {
   backLink?: { href: string; label: string };
@@ -124,6 +151,8 @@ export function PageHeader({
   title: string;
   /** Status shown beside the title, for pages whose subject has one. */
   badge?: ReactNode;
+  /** Stated under the title, where `meta` sits above it. */
+  facts?: { icon: ReactNode; text: string }[];
   actions?: ReactNode;
 }) {
   return (
@@ -142,6 +171,7 @@ export function PageHeader({
           <h1 className="text-display font-semibold text-ink-900">{title}</h1>
           {badge}
         </span>
+        {facts ? <FactLine items={facts} /> : null}
       </div>
       {actions ? (
         <div className="flex items-end gap-3 self-end">{actions}</div>
