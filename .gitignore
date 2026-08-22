@@ -42,8 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 # local-only rules, never commit
-.claude-rules.md
-CLAUDE.md
 
 # Design working files: large HTML extracts and prompt notes, not source.
 design/prototype/
