@@ -39,7 +39,11 @@ export function AskForContext({ firstName }: { firstName: string }) {
   return (
     <div className="flex flex-col items-end gap-2">
       <Button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          // aria-disabled leaves the button focusable, so the guard is here.
+          if (askedOn) return;
+          setOpen(true);
+        }}
         disabledReason={askedOn ? `Already asked on ${askedOn}.` : undefined}
         aria-describedby={askedOn ? "ask-reason" : undefined}
       >
