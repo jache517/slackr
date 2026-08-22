@@ -9,34 +9,25 @@ export const MIN_PASSWORD_LENGTH = 8;
 /**
  * Turns a Supabase auth failure into something worth reading.
  *
- * Sign-in is deliberately vague: the same message covers an unknown address
- * and a wrong password, so the form cannot be used to discover which addresses
- * have accounts. Everywhere else the reader already knows the address is
- * theirs, so naming the real problem costs nothing and saves a guess.
+ * Sign-in is deliberately vague: the same message covers an unknown username
+ * and a wrong password, so the form cannot be used to discover which names
+ * have accounts. Sign-up has to be specific, because "that name is taken" is
+ * the one thing the reader needs in order to pick another.
  */
 export function authErrorMessage(
   error: AuthError,
-  context: "sign-in" | "sign-up" | "recover" | "update",
+  context: "sign-in" | "sign-up",
 ) {
   switch (error.code) {
     case "invalid_credentials":
-      return "That email and password do not match an account.";
-
-    case "email_not_confirmed":
-      return "Confirm your email address first. Check your inbox for the link.";
+      return "That username and password do not match an account.";
 
     case "user_already_exists":
     case "email_exists":
-      return "An account already uses that email address. Sign in instead.";
+      return "That username is taken. Pick another.";
 
     case "weak_password":
       return `Pick a longer password: at least ${MIN_PASSWORD_LENGTH} characters.`;
-
-    case "same_password":
-      return "That is already your password. Pick a different one.";
-
-    case "over_email_send_rate_limit":
-      return "Too many emails requested. Wait a few minutes and try again.";
 
     case "over_request_rate_limit":
       return "Too many attempts. Wait a few minutes and try again.";
@@ -44,15 +35,19 @@ export function authErrorMessage(
     case "signup_disabled":
       return "New accounts are turned off for this site.";
 
-    case "otp_expired":
-      return "That link has expired. Request a new one.";
+    // Only reachable when the project still requires addresses to be
+    // confirmed, which cannot work for usernames: nothing can receive the
+    // mail. Says what to do rather than telling the reader to check an inbox
+    // that does not exist.
+    case "email_not_confirmed":
+      return "This site is not set up for username accounts yet. Ask an admin to turn off email confirmation.";
 
     default:
       break;
   }
 
   if (context === "sign-in") {
-    return "That email and password do not match an account.";
+    return "That username and password do not match an account.";
   }
 
   return "Something went wrong. Try again.";

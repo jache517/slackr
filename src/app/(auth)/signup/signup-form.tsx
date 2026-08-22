@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AuthCard, FormError, FormNotice } from "@/components/auth/auth-card";
+import { AuthCard, FormError } from "@/components/auth/auth-card";
 import { PasswordField, TextField } from "@/components/auth/fields";
 import { Button } from "@/components/ui";
 import {
@@ -12,20 +12,25 @@ import {
   authErrorMessage,
   isOffline,
 } from "@/lib/auth/auth-messages";
+import {
+  MAX_USERNAME_LENGTH,
+  MIN_USERNAME_LENGTH,
+  usernameProblem,
+  usernameToEmail,
+} from "@/lib/auth/username";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 type FieldErrors = {
-  email?: string;
+  username?: string;
   password?: string;
   confirmation?: string;
 };
 
-function validate(email: string, password: string, confirmation: string) {
+function validate(username: string, password: string, confirmation: string) {
   const errors: FieldErrors = {};
 
-  if (!email.includes("@") || email.startsWith("@") || email.endsWith("@")) {
-    errors.email = "Enter a complete email address.";
-  }
+  const nameProblem = usernameProblem(username);
+  if (nameProblem) errors.username = nameProblem;
 
   if (password.length < MIN_PASSWORD_LENGTH) {
     errors.password = `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
@@ -41,27 +46,25 @@ function validate(email: string, password: string, confirmation: string) {
 /**
  * Account creation.
  *
- * Supabase can be configured either to hand back a session immediately or to
- * require the address be confirmed first, and the project's setting is not
- * knowable from here. Both endings are handled: a session means straight into
- * the app, no session means the account exists but is waiting on an email.
+ * There is no email address and so nothing to confirm: the account is usable
+ * the moment it exists. A project still configured to require confirmation
+ * hands back no session, which cannot be resolved from here, so that case is
+ * reported as the misconfiguration it is rather than as a wait.
  */
 export function SignupForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [awaitingEmail, setAwaitingEmail] = useState(false);
 
   async function signUp(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
 
-    const trimmed = email.trim();
-    const errors = validate(trimmed, password, confirmation);
+    const errors = validate(username, password, confirmation);
     setFieldErrors(errors);
 
     if (Object.keys(errors).length > 0) return;
@@ -71,7 +74,7 @@ export function SignupForm() {
     try {
       const supabase = createBrowserSupabaseClient();
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: trimmed,
+        email: usernameToEmail(username),
         password,
       });
 
@@ -81,10 +84,10 @@ export function SignupForm() {
         return;
       }
 
-      // No session means the project requires the address to be confirmed
-      // before the account can be used.
       if (!data.session) {
-        setAwaitingEmail(true);
+        setError(
+          "This site is not set up for username accounts yet. Ask an admin to turn off email confirmation.",
+        );
         setBusy(false);
         return;
       }
@@ -102,27 +105,8 @@ export function SignupForm() {
     router.refresh();
   }
 
-  if (awaitingEmail) {
-    return (
-      <AuthCard
-        title="Confirm your email"
-        intro={`We sent a link to ${email.trim()}. Open it to finish setting up your account.`}
-        footer={
-          <Link href="/login" className="font-semibold text-indigo-600">
-            Back to sign in
-          </Link>
-        }
-      >
-        <FormNotice>
-          The link expires after a while. If it does, sign in and ask for
-          another.
-        </FormNotice>
-      </AuthCard>
-    );
-  }
-
   const ready =
-    email.trim().length > 0 &&
+    username.trim().length > 0 &&
     password.length > 0 &&
     confirmation.length > 0;
 
@@ -143,15 +127,19 @@ export function SignupForm() {
         {error ? <FormError id="signup-error">{error}</FormError> : null}
 
         <TextField
-          label="Email address"
-          name="email"
-          type="email"
+          label="Username"
+          name="username"
+          type="text"
           required
-          autoComplete="email"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           autoFocus
-          value={email}
-          error={fieldErrors.email}
-          onChange={(event) => setEmail(event.target.value)}
+          hint={`${MIN_USERNAME_LENGTH} to ${MAX_USERNAME_LENGTH} characters. Letters and numbers, with hyphens or underscores inside.`}
+          value={username}
+          error={fieldErrors.username}
+          onChange={(event) => setUsername(event.target.value)}
         />
 
         <PasswordField
@@ -159,7 +147,7 @@ export function SignupForm() {
           name="password"
           required
           autoComplete="new-password"
-          hint={`At least ${MIN_PASSWORD_LENGTH} characters.`}
+          hint={`At least ${MIN_PASSWORD_LENGTH} characters. There is no way to reset it, so keep it somewhere safe.`}
           value={password}
           error={fieldErrors.password}
           onChange={(event) => setPassword(event.target.value)}

@@ -9,7 +9,8 @@
 -- Supabase dashboard with a password of your own, then load
 -- 02_demo_data.sql with slackr.demo_owner_email set to that address.
 --
--- Sign in as owner@slackr.test with the password slackr-demo.
+-- Sign in with the username owner and the password slackr-demo. Usernames are
+-- stored as addresses inside slackr.test; see src/lib/auth/username.ts.
 
 begin;
 

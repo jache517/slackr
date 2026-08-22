@@ -70,10 +70,15 @@ and keys `supabase start` printed.
 
 Open [http://localhost:3000](http://localhost:3000) and sign in:
 
-| Field    | Value               |
-|----------|---------------------|
-| Email    | `owner@slackr.test` |
-| Password | `slackr-demo`       |
+| Field    | Value         |
+|----------|---------------|
+| Username | `owner`       |
+| Password | `slackr-demo` |
+
+Accounts are identified by username. Supabase Auth has no username of its own,
+so each one is mapped to an address inside `slackr.test`, a TLD reserved by RFC
+2606 that can never be registered: `owner` is stored as `owner@slackr.test`.
+Nothing is ever sent to it, and there is no password reset.
 
 That account exists only in the local seed and owns the three sample projects.
 Start with COMP30022: it is the one with an unmatched GitHub account, so it
@@ -87,7 +92,7 @@ The seed is split so credentials never leave the local stack:
 
 | File | Contents | Safe to run on a hosted database |
 |------|----------|----------------------------------|
-| `supabase/seeds/01_local_demo_account.sql` | `owner@slackr.test` and its plain-text password | **No** |
+| `supabase/seeds/01_local_demo_account.sql` | the `owner` account and its plain-text password | **No** |
 | `supabase/seeds/02_demo_data.sql` | the three projects and their activity | Yes |
 
 `supabase db reset` runs both, and only ever against the local stack. Never run
