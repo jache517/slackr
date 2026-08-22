@@ -6,15 +6,15 @@
 --   shares 35/30/28/7. The four-week series are seeded by timestamp, so
 --   the sparklines derive from the rows rather than being asserted.
 --
--- Sign in as owner@slackr.test: the magic link lands in Mailpit at
--- http://127.0.0.1:54324.
+-- Sign in as owner@slackr.test with the password slackr-demo.
+-- This account exists only in local development.
 
 begin;
 
 -- GoTrue reads these token columns directly and rejects nulls, so the
 -- empty strings below are required rather than tidiness.
-insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous, confirmation_token, recovery_token, email_change_token_new, email_change_token_current, email_change, phone_change, phone_change_token, reauthentication_token)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@slackr.test', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, false, '', '', '', '', '', '', '', '')
+insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at, encrypted_password, raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous, confirmation_token, recovery_token, email_change_token_new, email_change_token_current, email_change, phone_change, phone_change_token, reauthentication_token)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@slackr.test', now(), now(), now(), crypt('slackr-demo', gen_salt('bf')), '{"provider":"email","providers":["email"]}', '{}', false, false, '', '', '', '', '', '', '', '')
 on conflict (id) do nothing;
 
 -- COMP30022 Final Project

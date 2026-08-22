@@ -1,45 +1,53 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { LogoMark } from "@/components/icons";
 import { Button, Card } from "@/components/ui";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 /**
- * Sign-in is a magic link. There is no password to store, reset or leak, and
- * the reader is already proving they hold the address the group will invite.
- * OAuth belongs beside this once the GitHub and Google credentials exist -
- * the product connects to both anyway - but it cannot be run locally yet.
+ * Email and password sign-in.
+ *
+ * The password never reaches this app's own storage: Supabase Auth holds the
+ * hash and hands back a session. The failure message is deliberately the same
+ * whether the address is unknown or the password is wrong, so the form cannot
+ * be used to find out which addresses have accounts.
  */
 export function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function send(event: React.FormEvent) {
+  async function signIn(event: React.FormEvent) {
     event.preventDefault();
-    setState("sending");
+    setBusy(true);
     setError(null);
 
     const supabase = createBrowserSupabaseClient();
-    const { error: sendError } = await supabase.auth.signInWithOtp({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      password,
     });
 
-    if (sendError) {
-      setError("That link could not be sent. Check the address and try again.");
-      setState("idle");
+    if (signInError) {
+      setError("That email and password do not match an account.");
+      setBusy(false);
       return;
     }
 
-    setState("sent");
+    router.push("/projects");
+    router.refresh();
   }
+
+  const ready = email.length > 0 && password.length > 0;
 
   return (
     <Card className="w-full max-w-110">
-      <div className="flex flex-col gap-6">
+      <form onSubmit={signIn} className="flex flex-col gap-6">
         <div className="flex items-center gap-3">
           <span className="flex size-8 items-center justify-center rounded-tile bg-indigo-600">
             <LogoMark />
@@ -47,63 +55,72 @@ export function LoginForm() {
           <span className="text-section font-semibold text-ink-900">Slackr</span>
         </div>
 
-        {state === "sent" ? (
-          <div className="flex flex-col gap-2" role="status">
-            <h1 className="font-serif text-subhead text-ink-900">
-              Check your email.
-            </h1>
-            <p className="text-body text-ink-500">
-              A sign-in link is on its way to {email}. It works once and expires
-              in an hour.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={send} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <h1 className="font-serif text-subhead text-ink-900">
-                Sign in to Slackr
-              </h1>
-              <p className="text-body text-ink-500">
-                We&apos;ll email you a link. No password to remember.
-              </p>
-            </div>
+        <div className="flex flex-col gap-1">
+          <h1 className="font-serif text-subhead text-ink-900">
+            Sign in to Slackr
+          </h1>
+          <p className="text-body text-ink-500">
+            Use the email address your group knows you by.
+          </p>
+        </div>
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="email"
-                className="text-body font-semibold text-ink-900"
-              >
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "email-error" : undefined}
-                className="min-h-10 w-full rounded-control border border-ink-300 bg-surface-card px-3 text-body text-ink-900 hover:border-ink-700"
-              />
-              {error ? (
-                <p id="email-error" role="alert" className="text-body text-red-700">
-                  {error}
-                </p>
-              ) : null}
-            </div>
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-control bg-tint-red px-3 py-2 text-body text-red-700"
+          >
+            {error}
+          </p>
+        ) : null}
 
-            <Button
-              type="submit"
-              aria-busy={state === "sending" || undefined}
-              disabledReason={email ? undefined : "Enter your email address."}
-            >
-              Email me a sign-in link
-            </Button>
-          </form>
-        )}
-      </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className="text-body font-semibold text-ink-900">
+            Email address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={error ? true : undefined}
+            className={control}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="password"
+            className="text-body font-semibold text-ink-900"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={error ? true : undefined}
+            className={control}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          aria-busy={busy || undefined}
+          disabledReason={ready ? undefined : "Enter your email and password."}
+        >
+          Sign in
+        </Button>
+      </form>
     </Card>
   );
 }
+
+const control =
+  "min-h-10 w-full rounded-control border border-ink-300 bg-surface-card px-3 text-body text-ink-900 transition-colors duration-[120ms] hover:border-ink-700 aria-invalid:border-red-700";
