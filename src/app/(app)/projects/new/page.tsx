@@ -1,5 +1,4 @@
 import { Button, Card, PageHeader } from "@/components/ui";
-import { COURSE_OPTIONS } from "@/lib/data/fixtures";
 
 export const metadata = { title: "New project - Slackr" };
 
@@ -72,43 +71,19 @@ export default function NewProjectPage() {
             </h2>
 
             <Field
-              id="project-name"
-              label="Project name"
-              help="Students see this name when they join."
+              id="project-title"
+              label="Project title"
+              help="Everyone you invite sees this title when they join."
             >
               <input
-                id="project-name"
-                name="projectName"
+                id="project-title"
+                name="projectTitle"
                 type="text"
                 required
                 autoComplete="off"
-                aria-describedby="project-name-help"
+                aria-describedby="project-title-help"
                 className={controlClass}
               />
-            </Field>
-
-            <Field
-              id="course"
-              label="Course"
-              help="Reports are grouped by course."
-            >
-              <select
-                id="course"
-                name="course"
-                required
-                defaultValue=""
-                aria-describedby="course-help"
-                className={controlClass}
-              >
-                <option value="" disabled>
-                  Choose a course
-                </option>
-                {COURSE_OPTIONS.map((course) => (
-                  <option key={course} value={course}>
-                    {course}
-                  </option>
-                ))}
-              </select>
             </Field>
 
             <div className="max-w-70">
@@ -133,7 +108,7 @@ export default function NewProjectPage() {
             <div className="flex flex-col gap-2">
               <div className="flex gap-3">
                 <Button
-                  disabledReason="Fill in all three fields to continue."
+                  disabledReason="Fill in both fields to continue."
                   aria-describedby="next-reason"
                 >
                   Next: connect the tools
@@ -143,7 +118,7 @@ export default function NewProjectPage() {
                 </Button>
               </div>
               <p id="next-reason" className="text-body text-ink-500">
-                Fill in all three fields to continue.
+                Fill in both fields to continue.
               </p>
               <p id="cancel-note" className="text-body text-ink-500">
                 Cancel discards this draft.

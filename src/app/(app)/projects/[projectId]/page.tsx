@@ -23,7 +23,7 @@ export default async function ProjectDashboardPage({
       <PageHeader
         backLink={{ href: "/projects", label: "Back to Projects" }}
         meta={[
-          project.name,
+          project.title,
           `Due ${project.dueLabel.replace("due ", "")}`,
           `${passing} of ${checks.length} checks pass`,
         ]}

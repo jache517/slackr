@@ -68,7 +68,7 @@ export default async function MemberDetailPage({
         }}
         meta={[
           member.name,
-          project.code,
+          project.title,
           "1 to 30 Aug 2025",
           `${member.sharePercent}% share`,
           `even split ${evenSplitPercent}%`,

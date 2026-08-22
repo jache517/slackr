@@ -36,7 +36,7 @@ export default async function ReportPage({
           label: "Back to Dashboard",
         }}
         meta={[
-          project.name,
+          project.title,
           "1 to 30 Aug 2025",
           `${totals.events} events`,
           `${members.length} members`,

@@ -7,7 +7,11 @@ import {
   PageHeader,
   TrendCell,
 } from "@/components/ui";
-import { listProjects, type ProjectRecord } from "@/lib/data/queries";
+import {
+  listProjects,
+  projectInitials,
+  type ProjectRecord,
+} from "@/lib/data/queries";
 import type { ProjectStatus } from "@/lib/data/fixtures";
 
 export const metadata = { title: "Projects - Slackr" };
@@ -38,7 +42,7 @@ function ProjectCard({ project }: { project: ProjectRecord }) {
               : "bg-tint-indigo text-indigo-600"
           }`}
         >
-          {attention ? <WarningIcon size={20} /> : project.code.slice(0, 4)}
+          {attention ? <WarningIcon size={20} /> : projectInitials(project.title)}
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -47,7 +51,7 @@ function ProjectCard({ project }: { project: ProjectRecord }) {
               href={`/projects/${project.id}`}
               className="text-indigo-600 underline underline-offset-2 hover:text-indigo-700 hover:decoration-2"
             >
-              {project.name}
+              {project.title}
             </Link>
           </h3>
           <p className={`text-body ${statusTone[project.status]}`}>
@@ -62,7 +66,7 @@ function ProjectCard({ project }: { project: ProjectRecord }) {
           <TrendCell
             points={project.weeklyEvents}
             trend={project.trend}
-            title={`${project.code} activity across the last four weeks: ${
+            title={`${project.title} activity across the last four weeks: ${
               project.trend === "no_data" ? "not enough data" : project.trend
             }.`}
           />

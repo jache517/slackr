@@ -34,9 +34,7 @@ export type MemberRecord = {
 
 export type ProjectRecord = {
   id: string;
-  code: string;
-  name: string;
-  course: string;
+  title: string;
   status: ProjectStatus;
   dueLabel: string;
   memberCount: number;
@@ -128,9 +126,7 @@ const comp30022Members: MemberRecord[] = [
 export const PROJECTS: ProjectRecord[] = [
   {
     id: "comp30022",
-    code: "COMP30022",
-    name: "COMP30022 Final Project",
-    course: "COMP30022 IT Project",
+    title: "COMP30022 Final Project",
     status: "needs_attention",
     dueLabel: "due in 2 days",
     memberCount: 4,
@@ -152,9 +148,7 @@ export const PROJECTS: ProjectRecord[] = [
   },
   {
     id: "info20003",
-    code: "INFO20003",
-    name: "INFO20003 Group Project",
-    course: "INFO20003 Database Systems",
+    title: "INFO20003 Group Project",
     status: "collecting",
     dueLabel: "due 5 Oct 2025",
     memberCount: 5,
@@ -169,9 +163,7 @@ export const PROJECTS: ProjectRecord[] = [
   },
   {
     id: "swen30006",
-    code: "SWEN30006",
-    name: "SWEN30006 Project 2",
-    course: "SWEN30006 Software Modelling and Design",
+    title: "SWEN30006 Project 2",
     status: "too_early",
     dueLabel: "due 15 Sep 2025",
     memberCount: 3,
@@ -185,13 +177,4 @@ export const PROJECTS: ProjectRecord[] = [
     lastCollected: "28 Aug",
     members: [],
   },
-];
-
-export const COURSE_OPTIONS = [
-  "COMP30022 IT Project",
-  "COMP30023 Computer Systems",
-  "INFO20003 Database Systems",
-  "INFO30005 Web Information Technologies",
-  "SWEN30006 Software Modelling and Design",
-  "SWEN90007 Software Design and Architecture",
 ];

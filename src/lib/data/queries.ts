@@ -181,3 +181,15 @@ export async function getReadinessChecks(
 
   return checks;
 }
+
+/**
+ * Compact badge for a project: the first letter of its first two words.
+ * "COMP30022 Final Project" -> "CF". Falls back to the first two characters
+ * when the title is a single word.
+ */
+export function projectInitials(title: string) {
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}

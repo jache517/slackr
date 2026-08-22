@@ -24,7 +24,7 @@ export default async function MembersPage({
         qualifier={
           unmatched
             ? "Work under an unmatched account is left out of the report."
-            : `Nothing collected in ${project.code} is being left out.`
+            : `Nothing collected in ${project.title} is being left out.`
         }
         actions={<Button variant="secondary">Add member</Button>}
       />
@@ -97,7 +97,7 @@ export default async function MembersPage({
           </h2>
           <table className="w-full border-collapse">
             <caption className="pb-3 text-left text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500">
-              All {project.members.length} members in {project.code} are linked
+              All {project.members.length} members in {project.title} are linked
               to both GitHub and Google.
             </caption>
             <colgroup>
