@@ -55,9 +55,21 @@ export function usernameProblem(input: string) {
   return null;
 }
 
-/** The address Supabase Auth knows this username by. */
+/**
+ * The address Supabase Auth knows this username by.
+ *
+ * Accepts an address inside the internal domain as well as a bare username,
+ * because anyone who saw the stored address will type that back and would
+ * otherwise have it mapped a second time. Only this domain is unwrapped: an
+ * address anywhere else stays whole, so `bob@gmail.com` can never be used to
+ * reach the account belonging to the username `bob`.
+ */
 export function usernameToEmail(input: string) {
-  return `${normaliseUsername(input)}@${INTERNAL_DOMAIN}`;
+  const value = normaliseUsername(input);
+
+  return value.endsWith(`@${INTERNAL_DOMAIN}`)
+    ? value
+    : `${value}@${INTERNAL_DOMAIN}`;
 }
 
 /** The username behind an internal address, for showing an account back. */
