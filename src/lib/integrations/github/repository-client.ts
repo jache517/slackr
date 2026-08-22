@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { buildGithubApiHeaders, isGithubRateLimited } from "@/lib/integrations/github/github-api";
 import type { GithubRepositoryReference } from "@/lib/sources/source-validation";
 
 const GITHUB_API_TIMEOUT_MS = 5000;
@@ -24,10 +25,7 @@ export type GithubRepositoryVerification =
     };
 
 function isRateLimited(response: Response) {
-  return (
-    response.status === 429 ||
-    response.headers.get("x-ratelimit-remaining") === "0"
-  );
+  return isGithubRateLimited(response);
 }
 
 export async function verifyGithubRepository(
@@ -38,13 +36,9 @@ export async function verifyGithubRepository(
 
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${encodeURIComponent(reference.owner)}/${encodeURIComponent(reference.repository)}`,
+        `https://api.github.com/repos/${encodeURIComponent(reference.owner)}/${encodeURIComponent(reference.repository)}`,
       {
-        headers: {
-          Accept: "application/vnd.github+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-          "User-Agent": "Slackr",
-        },
+        headers: buildGithubApiHeaders(),
         signal: controller.signal,
         cache: "no-store",
       },

@@ -2,6 +2,7 @@ import { errorResponse, successResponse } from "@/lib/api/response";
 import { parseJsonBody } from "@/lib/api/validation";
 import { requireProjectAccess } from "@/lib/auth/require-project-access";
 import { requireUser } from "@/lib/auth/require-user";
+import { syncGithubActivityForProject } from "@/lib/github/github-activity-service";
 import { verifyGithubRepository } from "@/lib/integrations/github/repository-client";
 import {
   getExistingSource,
@@ -135,7 +136,12 @@ export async function POST(
         : internalErrorResponse();
     }
 
-    return successResponse(result.source, 201);
+    const syncResult = await syncGithubActivityForProject(auth.supabase, projectId);
+
+    return successResponse(
+      syncResult.ok ? syncResult.source : result.source,
+      201,
+    );
   } catch {
     return internalErrorResponse();
   }
