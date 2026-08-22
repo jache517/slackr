@@ -38,8 +38,12 @@ begin
 end $$;
 
 -- COMP30022 Final Project
-insert into public.projects (id, title, deadline, created_by) values
-  ('11111111-1111-4111-8111-000000000001', 'COMP30022 Final Project', current_date + 2, (select id from demo_owner));
+-- created_at is set explicitly rather than defaulted to the moment of
+-- seeding. A report covers the project's creation through to its deadline,
+-- and the activity below is written relative to now() reaching back about
+-- four weeks, so a project created "now" would report on an empty window.
+insert into public.projects (id, title, deadline, created_by, created_at) values
+  ('11111111-1111-4111-8111-000000000001', 'COMP30022 Final Project', current_date + 2, (select id from demo_owner), now() - interval '700 hours');
 
 insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
   ('33333333-3333-4333-8333-000000000001', '11111111-1111-4111-8111-000000000001', 'github', 'group3/final-project', 'group3/final-project', now()),
@@ -174,8 +178,8 @@ insert into public.meeting_attendance (project_id, meeting_id, member_id, attend
   ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000301', '22222222-2222-4222-8222-000000000004', 'Kevin Liu', 'kevin.liu@unitech.edu.au', now() - interval '379 hours');
 
 -- INFO20003 Group Project
-insert into public.projects (id, title, deadline, created_by) values
-  ('11111111-1111-4111-8111-000000000002', 'INFO20003 Group Project', current_date + 44, (select id from demo_owner));
+insert into public.projects (id, title, deadline, created_by, created_at) values
+  ('11111111-1111-4111-8111-000000000002', 'INFO20003 Group Project', current_date + 44, (select id from demo_owner), now() - interval '700 hours');
 
 insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
   ('33333333-3333-4333-8333-000000000004', '11111111-1111-4111-8111-000000000002', 'github', 'group3/final-project', 'group3/final-project', now()),
@@ -276,8 +280,8 @@ insert into public.meeting_attendance (project_id, meeting_id, member_id, attend
   ('11111111-1111-4111-8111-000000000002', '44444444-4444-4444-8444-000000000600', '22222222-2222-4222-8222-000000000009', 'Ruby Ellis', 'ruby.ellis@unitech.edu.au', now() - interval '617 hours');
 
 -- SWEN30006 Project 2
-insert into public.projects (id, title, deadline, created_by) values
-  ('11111111-1111-4111-8111-000000000003', 'SWEN30006 Project 2', current_date + 24, (select id from demo_owner));
+insert into public.projects (id, title, deadline, created_by, created_at) values
+  ('11111111-1111-4111-8111-000000000003', 'SWEN30006 Project 2', current_date + 24, (select id from demo_owner), now() - interval '700 hours');
 
 insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
   ('33333333-3333-4333-8333-000000000007', '11111111-1111-4111-8111-000000000003', 'github', 'group3/final-project', 'group3/final-project', now());
