@@ -20,6 +20,7 @@ export type MemberDraft = {
 export type Draft = {
   title: string;
   dueDate: string;
+  description: string;
   members: MemberDraft[];
   githubUrl: string;
   googleDocUrl: string;
@@ -46,6 +47,7 @@ export function emptyDraft(): Draft {
   return {
     title: "",
     dueDate: "",
+    description: "",
     members: [emptyMember()],
     githubUrl: "",
     googleDocUrl: "",
@@ -63,13 +65,16 @@ export function formatDue(value: string) {
 }
 
 export function validateProjectInfo(draft: Draft) {
-  const errors: { title?: string; dueDate?: string } = {};
+  const errors: { title?: string; dueDate?: string; description?: string } = {};
 
   if (!draft.title.trim()) errors.title = "Give the project a title.";
   if (draft.title.trim().length > 120) {
     errors.title = "Keep the title to 120 characters or fewer.";
   }
   if (!draft.dueDate) errors.dueDate = "Choose a deadline.";
+  if (draft.description.trim().length > 2000) {
+    errors.description = "Keep the description to 2000 characters or fewer.";
+  }
 
   return errors;
 }

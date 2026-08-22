@@ -15,7 +15,7 @@ export function ProjectInfoStep({
   registerField,
 }: {
   draft: Draft;
-  errors: { title?: string; dueDate?: string };
+  errors: { title?: string; dueDate?: string; description?: string };
   onChange: (patch: Partial<Draft>) => void;
   registerField: (id: string) => (element: HTMLElement | null) => void;
 }) {
@@ -73,6 +73,26 @@ export function ProjectInfoStep({
           />
         </Field>
       </div>
+
+      <Field
+        id="project-description"
+        label="Description"
+        optional
+        error={errors.description}
+        help="What the project is, in your own words. It is shown to the group and read by nothing else."
+      >
+        <textarea
+          ref={registerField("project-description")}
+          id="project-description"
+          name="projectDescription"
+          rows={4}
+          value={draft.description}
+          onChange={(event) => onChange({ description: event.target.value })}
+          aria-invalid={errors.description ? true : undefined}
+          aria-describedby={describedBy("project-description", errors.description)}
+          className={`${controlClass} min-h-24 resize-y py-2`}
+        />
+      </Field>
     </div>
   );
 }

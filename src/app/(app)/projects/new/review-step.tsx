@@ -96,6 +96,7 @@ export function ReviewStep({
         <dl className="m-0 flex flex-col gap-2">
           <Row label="Title" value={draft.title.trim()} />
           <Row label="Deadline" value={due ?? ""} />
+          <Row label="Description" value={draft.description.trim()} />
         </dl>
       </Section>
 

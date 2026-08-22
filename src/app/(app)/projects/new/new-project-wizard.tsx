@@ -92,6 +92,7 @@ export function NewProjectWizard() {
   const [infoErrors, setInfoErrors] = useState<{
     title?: string;
     dueDate?: string;
+    description?: string;
   }>({});
   const [memberErrors, setMemberErrors] = useState<Map<string, MemberErrors>>(
     new Map(),
@@ -160,6 +161,10 @@ export function NewProjectWizard() {
         focusField("due-date");
         return false;
       }
+      if (errors.description) {
+        focusField("project-description");
+        return false;
+      }
       return true;
     }
 
@@ -226,6 +231,7 @@ export function NewProjectWizard() {
     const project = await post("/api/projects", {
       title: draft.title.trim(),
       deadline: draft.dueDate,
+      description: draft.description.trim() || null,
     });
 
     if (!project.ok) {
