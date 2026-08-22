@@ -224,6 +224,36 @@ export function GoogleDocsMark({ size = 20, className }: IconProps) {
   );
 }
 
+export function GoogleMark({ size = 20, className }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden
+      className={className}
+    >
+      <path
+        d="M19.6 10.2c0-.7-.06-1.36-.18-2H10v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.74 3-4.3 3-7.3Z"
+        fill="#4285f4"
+      />
+      <path
+        d="M10 20c2.7 0 4.96-.9 6.6-2.42l-3.2-2.5c-.9.6-2.05.95-3.4.95-2.6 0-4.8-1.76-5.6-4.12H1.1v2.58A10 10 0 0 0 10 20Z"
+        fill="#34a853"
+      />
+      <path
+        d="M4.4 11.9a6 6 0 0 1 0-3.83V5.5H1.1a10 10 0 0 0 0 9l3.3-2.6Z"
+        fill="#fbbc05"
+      />
+      <path
+        d="M10 3.96c1.47 0 2.79.5 3.83 1.5l2.84-2.84C14.96.99 12.7 0 10 0A10 10 0 0 0 1.1 5.5l3.3 2.57C5.2 5.72 7.4 3.96 10 3.96Z"
+        fill="#ea4335"
+      />
+    </svg>
+  );
+}
+
 export function GoogleMeetMark({ size = 20, className }: IconProps) {
   return (
     <svg
