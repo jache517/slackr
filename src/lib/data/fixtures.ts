@@ -3,9 +3,9 @@
  *
  * Every figure here reconciles with the others:
  *   commits 18+16+13+2 = 49
- *   doc edits 14+11+12+3 = 40
+ *   doc activity 14+11+12+3 = 40
  *   attendances 4+4+4+2 = 14
- *   events per member = commits + doc edits + attendances -> 36, 31, 29, 7
+ *   events per member = commits + doc activity + attendances -> 36, 31, 29, 7
  *   total events 49+40+14 = 103
  *   shares = events/103 -> 35, 30, 28, 7 (sum 100)
  *
@@ -25,7 +25,8 @@ export type MemberRecord = {
   githubUsername: string;
   googleEmail: string;
   commits: number;
-  docEdits: number;
+  /** Edits, comments and suggestions together: reviewing is contributing. */
+  docActivity: number;
   meetingsAttended: number;
   lastActive: string;
   trend: TrendDirection;
@@ -73,7 +74,7 @@ const comp30022Members: MemberRecord[] = [
     githubUsername: "alice-dev",
     googleEmail: "alice.zhang@unitech.edu.au",
     commits: 18,
-    docEdits: 14,
+    docActivity: 14,
     meetingsAttended: 4,
     lastActive: "Today",
     trend: "rising",
@@ -87,7 +88,7 @@ const comp30022Members: MemberRecord[] = [
     githubUsername: "sheldonchen",
     googleEmail: "sheldon.chen@unitech.edu.au",
     commits: 16,
-    docEdits: 11,
+    docActivity: 11,
     meetingsAttended: 4,
     lastActive: "Today",
     trend: "rising",
@@ -101,7 +102,7 @@ const comp30022Members: MemberRecord[] = [
     githubUsername: "bobcode",
     googleEmail: "bob.wang@unitech.edu.au",
     commits: 13,
-    docEdits: 12,
+    docActivity: 12,
     meetingsAttended: 4,
     lastActive: "Yesterday",
     trend: "declining",
@@ -115,7 +116,7 @@ const comp30022Members: MemberRecord[] = [
     githubUsername: "kevinliu97",
     googleEmail: "kevin.liu@unitech.edu.au",
     commits: 2,
-    docEdits: 3,
+    docActivity: 3,
     meetingsAttended: 2,
     lastActive: "3 days ago",
     trend: "declining",

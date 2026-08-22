@@ -117,7 +117,7 @@ export default async function ProjectDashboardPage({
             </h2>
             <div className="grid grid-cols-4 gap-4">
               <StatTile value={String(totals.commits)} label="Commits" />
-              <StatTile value={String(totals.docEdits)} label="Doc edits" />
+              <StatTile value={String(totals.docActivity)} label="Doc activity" />
               <StatTile
                 value={String(totals.attendances)}
                 label="Meeting attendances"
@@ -125,7 +125,7 @@ export default async function ProjectDashboardPage({
               <StatTile value={project.lastCollected} label="Last collected" />
             </div>
             <p className="text-body text-ink-500">
-              {totals.commits} + {totals.docEdits} + {totals.attendances} ={" "}
+              {totals.commits} + {totals.docActivity} + {totals.attendances} ={" "}
               {totals.events} recorded events.
             </p>
           </div>

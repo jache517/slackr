@@ -29,7 +29,7 @@ export type ProjectReport = {
   members: MemberStats[];
   totals: {
     commits: number;
-    docEdits: number;
+    docActivity: number;
     attendances: number;
     events: number;
   };
@@ -44,7 +44,7 @@ export type ReadinessCheck = {
 };
 
 export function memberEvents(member: MemberRecord) {
-  return member.commits + member.docEdits + member.meetingsAttended;
+  return member.commits + member.docActivity + member.meetingsAttended;
 }
 
 export async function listProjects(): Promise<ProjectRecord[]> {
@@ -66,11 +66,11 @@ export async function getProjectReport(
   const totals = project.members.reduce(
     (acc, member) => ({
       commits: acc.commits + member.commits,
-      docEdits: acc.docEdits + member.docEdits,
+      docActivity: acc.docActivity + member.docActivity,
       attendances: acc.attendances + member.meetingsAttended,
       events: acc.events + memberEvents(member),
     }),
-    { commits: 0, docEdits: 0, attendances: 0, events: 0 },
+    { commits: 0, docActivity: 0, attendances: 0, events: 0 },
   );
 
   const members: MemberStats[] = project.members
@@ -110,7 +110,7 @@ export async function getMemberDetail(projectId: string, memberSlug: string) {
     member,
     medians: {
       commits: median(others.map((entry) => entry.commits)),
-      docEdits: median(others.map((entry) => entry.docEdits)),
+      docActivity: median(others.map((entry) => entry.docActivity)),
       meetings: median(others.map((entry) => entry.meetingsAttended)),
     },
   };
@@ -157,7 +157,7 @@ export async function getReadinessChecks(
 
   const sourceDetail: Record<SourceKey, string> = {
     github: `group3/final-project - ${totals.commits} commits`,
-    google_docs: `Final Project Report - ${totals.docEdits} edits`,
+    google_docs: `Final Project Report - ${totals.docActivity} edits, comments and suggestions`,
     google_meet: `Weekly stand-up calendar - ${project.meetingsHeld} meetings, ${totals.attendances} attendances`,
   };
 

@@ -237,7 +237,7 @@ export default async function ReportPage({
                   {[
                     "Member",
                     "Commits",
-                    "Doc edits",
+                    "Doc activity",
                     "Meetings",
                     "Last active",
                     "Share",
@@ -274,7 +274,7 @@ export default async function ReportPage({
                         data-tabular
                         className={`py-3 pr-4 text-body text-ink-500 ${border}`}
                       >
-                        {member.docEdits}
+                        {member.docActivity}
                       </td>
                       <td
                         data-tabular

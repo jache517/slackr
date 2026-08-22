@@ -43,10 +43,10 @@ export default async function MemberDetailPage({
       heading: "Google Docs edits",
       scaleLabel: "scale 0 to 20 edits",
       scaleMax: 20,
-      memberCount: member.docEdits,
-      memberDisplay: String(member.docEdits),
-      medianCount: medians.docEdits,
-      medianDisplay: String(medians.docEdits),
+      memberCount: member.docActivity,
+      memberDisplay: String(member.docActivity),
+      medianCount: medians.docActivity,
+      medianDisplay: String(medians.docActivity),
     },
     {
       key: "meetings",
@@ -228,7 +228,7 @@ export default async function MemberDetailPage({
             </h3>
             <div className="grid grid-cols-4 gap-4">
               <StatTile value={String(member.commits)} label="Commits" />
-              <StatTile value={String(member.docEdits)} label="Doc edits" />
+              <StatTile value={String(member.docActivity)} label="Doc activity" />
               <StatTile
                 value={`${member.meetingsAttended} of ${project.meetingsHeld}`}
                 label="Meetings attended"
