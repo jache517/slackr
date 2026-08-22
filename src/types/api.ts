@@ -233,7 +233,46 @@ export type ContributionReportMember = {
   context: ReportMemberContext[];
 };
 
-export type ContributionReport = {
+export type ReportVisualisation =
+  | {
+      id: "sourceActivityByMember";
+      type: "groupedBar";
+      title: string;
+      caption: string;
+      series: Array<{
+        sourceType: "github" | "googleDocs";
+        metric: "commitCount" | "activityCount";
+        label: string;
+        value: number;
+      }>;
+    }
+  | {
+      id: "activityTimeline";
+      type: "timeline";
+      title: string;
+      caption: string;
+      items: Array<{
+        memberId: string;
+        memberName: string;
+        sourceType: "github" | "googleDocs";
+        activityType: "commit" | DocsActivityType;
+        timestamp: string;
+        evidenceRef: EvidenceReference;
+      }>;
+    }
+  | {
+      id: "sourceStates";
+      type: "sourceState";
+      title: string;
+      caption: string;
+      sources: Array<{
+        sourceType: "github" | "googleDocs";
+        status: "unconnected" | "connected" | "failed";
+        isStale: boolean;
+      }>;
+    };
+
+export type CanonicalEvidenceSnapshot = {
   project: Project;
   monitoringPeriod: {
     from: string;
@@ -243,21 +282,29 @@ export type ContributionReport = {
   connectedSources: SourceConnection[];
   sourceStates: ActivitySourceStates;
   members: ContributionReportMember[];
+  visualisations: ReportVisualisation[];
+  limitations: string[];
   disclaimer: string;
 };
 
-export type AiEvidenceSummary = {
+export type ContributionReport = CanonicalEvidenceSnapshot;
+
+export type AiGeneratedEvidenceReport = {
   generatedAt: string;
+  monitoringPeriod: {
+    from: string;
+    to: string;
+  };
+  title: string;
   overview: string;
-  memberObservations: Array<{
-    memberId: string;
-    roleContextUsed: boolean;
-    observations: Array<{
-      text: string;
-      evidenceRefs: EvidenceReference[];
-    }>;
-    missingContext: string[];
+  sections: Array<{
+    id: string;
+    heading: string;
+    body: string;
+    memberId: string | null;
+    evidenceRefs: EvidenceReference[];
   }>;
+  visualisations: ReportVisualisation[];
   limitations: string[];
   disclaimer: string;
   reviewRequired: true;

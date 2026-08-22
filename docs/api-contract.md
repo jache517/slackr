@@ -499,11 +499,26 @@ Team-facing context retains the internal submitter user ID. Tutor-facing report
 context retains `submissionType` and `createdAt` but omits `submittedByUserId`.
 Role context and missing-work context remain separate authored data classes.
 
-## Deterministic Report API
+## Canonical Evidence Snapshot API
 
 ### `GET /api/projects/:projectId/report`
 
-Optional query: `?from=2026-08-01&to=2026-08-30`
+Optional query: `?from=2026-08-01&to=2026-08-30`.
+
+This is the server-built canonical evidence snapshot used by the AI report and
+safe fallback. It is not presented as a second user-facing deterministic report
+document.
+
+If both query values are omitted, the period is:
+
+```text
+from = the UTC calendar date of project.createdAt
+to   = min(project.deadline, the current UTC calendar date)
+```
+
+The client may provide both `from` and `to` as valid inclusive calendar dates.
+Providing only one value is invalid. `from` must be on or before `to`.
+Unknown query keys and malformed dates return `400 VALIDATION_ERROR`.
 
 ```ts
 type GithubReportEvidence = {
@@ -531,7 +546,46 @@ type GoogleDocsReportEvidence = {
   }>;
 };
 
-type ContributionReport = {
+type ReportVisualisation =
+  | {
+      id: "sourceActivityByMember";
+      type: "groupedBar";
+      title: string;
+      caption: string;
+      series: Array<{
+        sourceType: "github" | "googleDocs";
+        metric: "commitCount" | "activityCount";
+        label: string;
+        value: number;
+      }>;
+    }
+  | {
+      id: "activityTimeline";
+      type: "timeline";
+      title: string;
+      caption: string;
+      items: Array<{
+        memberId: string;
+        memberName: string;
+        sourceType: "github" | "googleDocs";
+        activityType: "commit" | "edit" | "comment" | "suggestion";
+        timestamp: string;
+        evidenceRef: EvidenceReference;
+      }>;
+    }
+  | {
+      id: "sourceStates";
+      type: "sourceState";
+      title: string;
+      caption: string;
+      sources: Array<{
+        sourceType: "github" | "googleDocs";
+        status: "unconnected" | "connected" | "failed";
+        isStale: boolean;
+      }>;
+    };
+
+type CanonicalEvidenceSnapshot = {
   project: Project;
   monitoringPeriod: { from: string; to: string };
   generatedAt: string;
@@ -552,28 +606,23 @@ type ContributionReport = {
       createdAt: string;
     }>;
   }>;
+  visualisations: ReportVisualisation[];
+  limitations: string[];
   disclaimer: string;
 };
 ```
 
-The tutor-facing table, grouped bar chart, named source-state view, and timeline
-are derived from this deterministic response. Source metrics stay separate: a
-commit is not converted into an equivalent number of document edits. Charts are
-rendered by the frontend, not generated as AI images.
+The snapshot excludes team-only `evidenceAlerts`, internal
+`submittedByUserId` values, scores, ranks, classifications, grades, unsupported
+source metrics, Meet data, Coverage, and generated AI prose. It preserves
+unconnected source evidence as `null`, connected zero-activity evidence as
+zero counts with empty items, and failed-source stale evidence according to
+the `isStale` rule.
 
-Unconnected report evidence is `null`. Connected zero-activity evidence contains
-zero counts and an empty `items` array. A failed source is represented in
-`sourceStates`; any retained evidence must follow the `isStale` rule.
-
-Every evidence item that can support an AI observation exposes a stable report
-reference, for example `github:commit:<sha>` or `googleDocs:activity:<id>`.
-Report payloads omit internal account IDs that the instructor does not need.
-
-The report excludes team-only `evidenceAlerts` and internal
-`submittedByUserId` values. It contains no Meet data, pull-request/issue/
-repository/code-review metrics, unsupported document count, Coverage, Active,
-score, rank, `High`/`Low` label, free-rider classification, grade recommendation,
-or automatic verdict. PDF and CSV remain outside MVP v1.
+All visualisation values, member IDs, timestamps, source types, and evidence
+references are generated from the canonical snapshot. GitHub and Google Docs
+remain separate metrics and are never combined into a total or percentage.
+The frontend must provide a text-equivalent table or accessible data summary.
 
 ## Application routes and session display
 
@@ -595,30 +644,31 @@ session metadata, then falls back to the session email. Display metadata is not
 an authorisation source. The server continues to authorise with the verified
 user ID. A1.5 adds no profiles table or profile API.
 
-## AI Evidence Summary API — optional stretch goal
+## AI-Generated Evidence Report API
 
 ### `POST /api/projects/:projectId/report/ai-summary`
 
 Optional query: `?from=2026-08-01&to=2026-08-30`.
 
-The client does not upload a report. The server authorises the request, builds the canonical deterministic report, minimises the fields sent to the configured model provider, and requests a strict schema-conforming response.
+The AI-generated report is the primary tutor-facing report presentation. The
+client sends no report data, prompt, provider option, model name, or
+visualisation values. The request body must be empty; `{}` is also accepted as
+an empty JSON object.
 
 ```ts
-type AiEvidenceSummary = {
+type AiGeneratedEvidenceReport = {
   generatedAt: string;
+  monitoringPeriod: { from: string; to: string };
+  title: string;
   overview: string;
-  memberObservations: Array<{
-    memberId: string;
-    roleContextUsed: boolean;
-    observations: Array<{
-      text: string;
-      evidenceRefs: Array<
-        | `github:commit:${string}`
-        | `googleDocs:activity:${string}`
-      >;
-    }>;
-    missingContext: string[];
+  sections: Array<{
+    id: string;
+    heading: string;
+    body: string;
+    memberId: string | null;
+    evidenceRefs: EvidenceReference[];
   }>;
+  visualisations: ReportVisualisation[];
   limitations: string[];
   disclaimer: string;
   reviewRequired: true;
@@ -627,15 +677,55 @@ type AiEvidenceSummary = {
 
 Rules:
 
-- every material observation includes stable `evidenceRefs` or is omitted;
-- team-only `evidenceAlerts` are not included in the canonical report or AI input;
-- roles and responsibilities stay labelled as self-reported or owner-recorded and never prove completion;
-- the model may describe fewer observed events, but cannot claim lower overall contribution, rank members, identify free riders, recommend grades, or emit `High`/`Low` status;
+- every material observation includes one or more stable `evidenceRefs`, or
+  it is returned as an explicit limitation;
+- team-only `evidenceAlerts` are excluded from the canonical snapshot and AI
+  input;
+- roles, responsibilities, and member context remain labelled authored context
+  and never prove that work was completed;
+- the report cannot rank members, assign contribution percentages, identify a
+  free rider, recommend a grade, or emit `High`/`Low` status;
 - unsupported sources become limitations rather than invented evidence;
-- provider text and member context are untrusted data, not model instructions;
-- raw tokens, secrets, full document contents, and unnecessary personal data are never sent;
-- use strict JSON Schema output and validate the result again at runtime;
-- AI timeout, refusal, invalid output, rate limit, or missing configuration never blocks the deterministic report or visualisation;
-- the UI labels output `AI-generated draft` and requires instructor review.
+- provider text, commit messages, role descriptions, and member context are
+  untrusted data, not model instructions;
+- raw tokens, secrets, full document contents, and unnecessary personal data
+  are never sent;
+- the server validates provider output at runtime and then replaces all
+  visualisation data with canonical server data;
+- AI may supply titles, captions, and explanatory text only. It cannot change
+  chart values, member IDs, timestamps, source types, or evidence references;
+- AI timeout, refusal, invalid output, rate limit, missing configuration, and
+  upstream failure return a safe fixed error while the canonical snapshot
+  remains available through the GET route;
+- the UI labels output `AI-generated draft` and `Instructor review required`.
 
-Provider, model, retention settings, usage limits, and consent/privacy wording must be approved before implementation. If OpenAI Responses is selected, the feature must follow current official data-control guidance and review `store: false` and available retention controls.
+The approved first provider is OpenAI through the Responses API with
+Structured Outputs and the `gpt-5.6-terra` model. The provider is disabled by
+default and is enabled only when the server sets `AI_REPORT_PROVIDER=openai`
+and supplies `OPENAI_API_KEY`. Requests use `store: false`, a 20-second
+default timeout, and no automatic SDK retries. OpenAI platform retention and
+abuse-monitoring policies still apply; `store: false` does not constitute a
+zero-retention agreement.
+
+Server-only configuration:
+
+```text
+AI_REPORT_PROVIDER=none|openai
+OPENAI_API_KEY=<server secret>
+OPENAI_MODEL=gpt-5.6-terra
+OPENAI_TIMEOUT_MS=20000
+OPENAI_MAX_OUTPUT_TOKENS=2200
+```
+
+The deployment must still establish consent wording, rate limits, budget
+limits, retention requirements, and the production environment boundary before
+the provider is enabled outside local development.
+
+Expected AI errors use the existing error wrapper:
+
+| Condition | Status | Code |
+|---|---:|---|
+| Provider/model not configured | `503` | `AI_PROVIDER_NOT_CONFIGURED` |
+| Provider timeout or temporary failure | `503` | `AI_PROVIDER_UNAVAILABLE` |
+| Provider rate limit | `429` | `AI_RATE_LIMITED` |
+| Invalid provider output | `502` | `AI_INVALID_OUTPUT` |

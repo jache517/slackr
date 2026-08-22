@@ -12,7 +12,8 @@ import {
 } from "@/lib/projects/project-mapper";
 import type { Database } from "@/types/database";
 
-const PROJECT_COLUMNS = "id, created_by, created_at, updated_at";
+const PROJECT_COLUMNS =
+  "id, title, deadline, description, created_by, created_at, updated_at";
 const SOURCE_CONNECTION_COLUMNS =
   "id, project_id, source_type, external_id, display_name, connected_at, last_synced_at, sync_error_code, sync_error_message, sync_error_at";
 const MEMBER_COLUMNS =
@@ -28,7 +29,13 @@ const MEMBER_ROLE_CONTEXT_COLUMNS =
 
 export type ActivityProjectRow = Pick<
   ProjectRow,
-  "id" | "created_by" | "created_at" | "updated_at"
+  | "id"
+  | "title"
+  | "deadline"
+  | "description"
+  | "created_by"
+  | "created_at"
+  | "updated_at"
 >;
 
 export type ActivityMemberRow = Pick<
