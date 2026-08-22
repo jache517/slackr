@@ -7,6 +7,8 @@ import { Dialog } from "@/components/dialog";
 import { useToast } from "@/components/toast";
 import { Button, Card } from "@/components/ui";
 
+import { controlClass, describedBy, Field } from "./fields";
+
 /**
  * Step 1 of New Project. The summary panel mirrors the fields live, `Next`
  * stays blocked until both are filled, and Cancel goes through a confirm
@@ -35,45 +37,6 @@ function formatDue(value: string) {
     year: "numeric",
   });
 }
-
-function Field({
-  id,
-  label,
-  help,
-  error,
-  children,
-}: {
-  id: string;
-  label: string;
-  help: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="flex items-baseline gap-2">
-        <label htmlFor={id} className="text-body font-semibold text-ink-900">
-          {label}
-        </label>
-        <span className="text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500">
-          Required
-        </span>
-      </span>
-      {children}
-      {error ? (
-        <p id={`${id}-error`} role="alert" className="text-body text-red-700">
-          {error}
-        </p>
-      ) : null}
-      <p id={`${id}-help`} className="text-body text-ink-500">
-        {help}
-      </p>
-    </div>
-  );
-}
-
-const controlClass =
-  "min-h-10 w-full rounded-control border border-ink-300 bg-surface-card px-3 text-body text-ink-900 transition-colors duration-[120ms] hover:border-ink-700 aria-invalid:border-red-700";
 
 export function NewProjectForm() {
   const router = useRouter();
@@ -166,9 +129,7 @@ export function NewProjectForm() {
                 setErrors((e) => ({ ...e, title: undefined }));
               }}
               aria-invalid={errors.title ? true : undefined}
-              aria-describedby={
-                errors.title ? "project-title-error" : "project-title-help"
-              }
+              aria-describedby={describedBy("project-title", errors.title)}
               className={controlClass}
             />
           </Field>
@@ -192,9 +153,7 @@ export function NewProjectForm() {
                   setErrors((e) => ({ ...e, dueDate: undefined }));
                 }}
                 aria-invalid={errors.dueDate ? true : undefined}
-                aria-describedby={
-                  errors.dueDate ? "due-date-error" : "due-date-help"
-                }
+                aria-describedby={describedBy("due-date", errors.dueDate)}
                 className={controlClass}
               />
             </Field>
