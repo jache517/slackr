@@ -29,7 +29,7 @@ const MEMBER_COLUMNS =
 const MEMBER_ROLE_CONTEXT_COLUMNS =
   "id, project_id, member_id, primary_role, additional_roles, responsibilities, additional_context, submission_type, submitted_by_user_id, created_at, updated_at";
 const SOURCE_CONNECTION_COLUMNS =
-  "id, project_id, source_type, external_id, display_name, connected_at, last_synced_at";
+  "id, project_id, source_type, external_id, display_name, connected_at, last_synced_at, sync_error_code, sync_error_message, sync_error_at";
 
 type RepositoryFailure = { ok: false; reason: "database_error" };
 type RepositoryNotFound = { ok: false; reason: "not_found" };

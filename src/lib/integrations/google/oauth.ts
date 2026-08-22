@@ -4,6 +4,7 @@ export const GOOGLE_OAUTH_SCOPES = [
   "openid",
   "email",
   "https://www.googleapis.com/auth/drive.activity.readonly",
+  "https://www.googleapis.com/auth/drive.metadata.readonly",
 ] as const;
 
 const GOOGLE_AUTHORIZATION_ENDPOINT =

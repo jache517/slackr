@@ -328,6 +328,12 @@ The authenticated member may update only their linked member record. The owner m
 | `GET` | `/api/integrations/google/callback` | Google OAuth callback parameters | `302` to `/projects/:projectId/sources` |
 
 GitHub supports public repositories only in MVP v1. Google connection uses a server-side authorisation-code flow; provider tokens never appear in API responses. Disconnect and manual resync are outside MVP v1.
+The Google authorization request uses `openid`, `email`,
+`https://www.googleapis.com/auth/drive.activity.readonly`, and
+`https://www.googleapis.com/auth/drive.metadata.readonly`. A6 uses the access
+token only during the callback request; it does not persist access or refresh
+tokens, so later resync is outside this feature.
+The Google callback is a browser redirect endpoint. On success it redirects back to the project sources page. On safe failure it redirects back to the same project-scoped page with a `googleCallbackError` query parameter. Stable callback values are `UNAUTHENTICATED`, `GOOGLE_OAUTH_NOT_CONFIGURED`, `GOOGLE_OAUTH_TEMPORARILY_UNAVAILABLE`, `GOOGLE_OAUTH_STATE_INVALID`, `GOOGLE_OAUTH_STATE_EXPIRED`, `GOOGLE_OAUTH_CALLBACK_REPLAYED`, `GOOGLE_DOCUMENT_NOT_ACCESSIBLE`, `GOOGLE_PROVIDER_ERROR`, `GOOGLE_RATE_LIMITED`, `GOOGLE_PARTIAL_SYNC_FAILURE`, `SOURCE_ALREADY_CONNECTED`, `SOURCE_TYPE_ALREADY_CONNECTED`, and `INTERNAL_ERROR`. It never returns the JSON wrapper.
 
 ### A4 initiation rules
 
@@ -346,9 +352,10 @@ later successful sync completes.
 `POST /api/projects/:projectId/sources/google` accepts only `documentUrl`. It
 requires an HTTPS `docs.google.com/document/d/{documentId}` URL, strips
 query/fragment and presentation suffixes, and preserves the document ID case.
-It creates a ten-minute, one-time, server-trusted OAuth intent and returns only
+It creates a ten-minute, one-time, database-backed server-trusted OAuth intent and returns only
 `200 { data: { authorizationUrl } }`; it does not create a SourceConnection or
-increase `connectedSourceCount`. The callback remains an A6 implementation gate.
+increase `connectedSourceCount`. The callback completes the connection and
+bounded initial activity collection as defined by A6.
 
 Each Project may have at most one source of each supported type. A duplicate
 external source returns `409 SOURCE_ALREADY_CONNECTED`; a different source of

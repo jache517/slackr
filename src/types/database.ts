@@ -90,6 +90,9 @@ export type Database = {
           display_name: string;
           connected_at: string;
           last_synced_at: string | null;
+          sync_error_code: string | null;
+          sync_error_message: string | null;
+          sync_error_at: string | null;
         };
         Insert: {
           id?: string;
@@ -99,6 +102,9 @@ export type Database = {
           display_name: string;
           connected_at?: string;
           last_synced_at?: string | null;
+          sync_error_code?: string | null;
+          sync_error_message?: string | null;
+          sync_error_at?: string | null;
         };
         Update: {
           id?: string;
@@ -108,6 +114,9 @@ export type Database = {
           display_name?: string;
           connected_at?: string;
           last_synced_at?: string | null;
+          sync_error_code?: string | null;
+          sync_error_message?: string | null;
+          sync_error_at?: string | null;
         };
         Relationships: [];
       };
@@ -362,8 +371,20 @@ export type Database = {
       };
     };
     Views: Record<never, never>;
-    Functions: {
-      create_google_oauth_intent: {
+      Functions: {
+        inspect_google_oauth_intent: {
+          Args: {
+            p_state_hash: string;
+          };
+          Returns: Array<{
+            project_id: string;
+            requested_by_user_id: string;
+            external_id: string;
+            expires_at: string;
+            consumed_at: string | null;
+          }>;
+        };
+        create_google_oauth_intent: {
         Args: {
           p_project_id: string;
           p_external_id: string;
