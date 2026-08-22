@@ -4,34 +4,15 @@ import { z } from "zod";
 
 import { strictJsonObject } from "@/lib/api/validation";
 
-const PROJECT_NAME_MAX_LENGTH = 120;
-const PROJECT_TEXT_MAX_LENGTH = 80;
+const PROJECT_TITLE_MAX_LENGTH = 120;
 
-const projectNameSchema = z
+const projectTitleSchema = z
   .string()
   .trim()
-  .min(1, "Project name is required")
+  .min(1, "Project title is required")
   .max(
-    PROJECT_NAME_MAX_LENGTH,
-    `Project name must be ${PROJECT_NAME_MAX_LENGTH} characters or fewer`,
-  );
-
-const courseSchema = z
-  .string()
-  .trim()
-  .min(1, "Course is required")
-  .max(
-    PROJECT_TEXT_MAX_LENGTH,
-    `Course must be ${PROJECT_TEXT_MAX_LENGTH} characters or fewer`,
-  );
-
-const groupNameSchema = z
-  .string()
-  .trim()
-  .min(1, "Group name is required")
-  .max(
-    PROJECT_TEXT_MAX_LENGTH,
-    `Group name must be ${PROJECT_TEXT_MAX_LENGTH} characters or fewer`,
+    PROJECT_TITLE_MAX_LENGTH,
+    `Project title must be ${PROJECT_TITLE_MAX_LENGTH} characters or fewer`,
   );
 
 function isLeapYear(year: number) {
@@ -76,18 +57,14 @@ const deadlineSchema = z
   .refine(isCalendarDate, "Deadline must be a valid YYYY-MM-DD date");
 
 const projectFields = {
-  name: projectNameSchema,
-  course: courseSchema,
-  groupName: groupNameSchema,
+  title: projectTitleSchema,
   deadline: deadlineSchema,
 };
 
 export const createProjectSchema = strictJsonObject(projectFields);
 
 export const updateProjectSchema = strictJsonObject({
-  name: projectNameSchema.optional(),
-  course: courseSchema.optional(),
-  groupName: groupNameSchema.optional(),
+  title: projectTitleSchema.optional(),
   deadline: deadlineSchema.optional(),
 }).refine((value) => Object.keys(value).length > 0, {
   message: "At least one project field is required",

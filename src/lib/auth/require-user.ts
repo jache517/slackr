@@ -8,6 +8,7 @@ import type { Database } from "@/types/database";
 
 export type AuthenticatedUser = {
   id: string;
+  email: string | null;
 };
 
 type AuthenticatedResult = {
@@ -31,7 +32,9 @@ export async function getCurrentUser(
     return null;
   }
 
-  return { id: subject };
+  const email = data?.claims?.email;
+
+  return { id: subject, email: typeof email === "string" ? email : null };
 }
 
 export async function requireUser(

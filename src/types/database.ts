@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type SourceType = "github" | "google_docs";
+export type SourceType = "github" | "google_docs" | "google_meet";
 export type DocsActivityType = "edit" | "comment" | "suggestion";
 export type ContextSubmissionType =
   | "member_self_reported"
@@ -18,9 +18,7 @@ export type Database = {
       projects: {
         Row: {
           id: string;
-          name: string;
-          course: string;
-          group_name: string;
+          title: string;
           deadline: string;
           created_by: string;
           created_at: string;
@@ -28,9 +26,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          name: string;
-          course: string;
-          group_name: string;
+          title: string;
           deadline: string;
           created_by?: string;
           created_at?: string;
@@ -38,9 +34,7 @@ export type Database = {
         };
         Update: {
           id?: string;
-          name?: string;
-          course?: string;
-          group_name?: string;
+          title?: string;
           deadline?: string;
           created_by?: string;
           created_at?: string;
@@ -124,6 +118,7 @@ export type Database = {
           commit_message: string;
           author_name: string | null;
           author_email: string | null;
+          author_username: string | null;
           authored_at: string;
           created_at: string;
         };
@@ -136,6 +131,7 @@ export type Database = {
           commit_message: string;
           author_name?: string | null;
           author_email?: string | null;
+          author_username?: string | null;
           authored_at: string;
           created_at?: string;
         };
@@ -148,6 +144,7 @@ export type Database = {
           commit_message?: string;
           author_name?: string | null;
           author_email?: string | null;
+          author_username?: string | null;
           authored_at?: string;
           created_at?: string;
         };
@@ -258,6 +255,69 @@ export type Database = {
           submitted_by_user_id?: string;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      meetings: {
+        Row: {
+          id: string;
+          project_id: string;
+          source_connection_id: string;
+          title: string;
+          provider_meeting_id: string | null;
+          held_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          source_connection_id: string;
+          title: string;
+          provider_meeting_id?: string | null;
+          held_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          source_connection_id?: string;
+          title?: string;
+          provider_meeting_id?: string | null;
+          held_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      meeting_attendance: {
+        Row: {
+          id: string;
+          project_id: string;
+          meeting_id: string;
+          member_id: string | null;
+          attendee_name: string | null;
+          attendee_email: string | null;
+          joined_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          meeting_id: string;
+          member_id?: string | null;
+          attendee_name?: string | null;
+          attendee_email?: string | null;
+          joined_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          meeting_id?: string;
+          member_id?: string | null;
+          attendee_name?: string | null;
+          attendee_email?: string | null;
+          joined_at?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };

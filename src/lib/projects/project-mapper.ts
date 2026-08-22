@@ -37,9 +37,7 @@ export function mapProject(
 ): Project {
   return {
     id: row.id,
-    name: row.name,
-    course: row.course,
-    groupName: row.group_name,
+    title: row.title,
     deadline: row.deadline,
     memberCount,
     connectedSourceCount,

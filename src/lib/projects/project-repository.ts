@@ -22,7 +22,7 @@ import type { Project, ProjectDetail } from "@/types/api";
 import type { Database } from "@/types/database";
 
 const PROJECT_COLUMNS =
-  "id, name, course, group_name, deadline, created_by, created_at, updated_at";
+  "id, title, deadline, created_by, created_at, updated_at";
 const PROJECT_WITH_COUNTS_COLUMNS = `${PROJECT_COLUMNS}, members(count), source_connections(count)`;
 const MEMBER_COLUMNS =
   "id, project_id, name, email, github_username, google_email, auth_user_id, created_at, updated_at";
@@ -36,9 +36,7 @@ type RepositoryNotFound = { ok: false; reason: "not_found" };
 
 function toProjectInsert(input: CreateProjectInput, userId: string) {
   return {
-    name: input.name,
-    course: input.course,
-    group_name: input.groupName,
+    title: input.title,
     deadline: input.deadline,
     created_by: userId,
   } satisfies Database["public"]["Tables"]["projects"]["Insert"];
@@ -47,9 +45,7 @@ function toProjectInsert(input: CreateProjectInput, userId: string) {
 function toProjectUpdate(input: UpdateProjectInput) {
   const update: Database["public"]["Tables"]["projects"]["Update"] = {};
 
-  if (input.name !== undefined) update.name = input.name;
-  if (input.course !== undefined) update.course = input.course;
-  if (input.groupName !== undefined) update.group_name = input.groupName;
+  if (input.title !== undefined) update.title = input.title;
   if (input.deadline !== undefined) update.deadline = input.deadline;
 
   return update;
