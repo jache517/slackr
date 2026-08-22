@@ -41,7 +41,6 @@ export default async function MembersPage() {
             ? "Everyone is linked to their accounts."
             : `${unlinked} member${unlinked === 1 ? "" : "s"} are missing an account.`
         }
-        qualifier="A member with no linked account records no activity at all."
       />
 
       <Card>

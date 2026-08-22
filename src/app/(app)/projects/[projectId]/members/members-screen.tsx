@@ -82,11 +82,6 @@ export function MembersScreen({
             ? "One GitHub account isn't matched to anyone."
             : "Every account is matched."
         }
-        qualifier={
-          unmatched
-            ? "Work under an unmatched account is left out of the report."
-            : `Nothing collected in ${title} is being left out.`
-        }
         actions={<Button variant="secondary">Add member</Button>}
       />
 

@@ -34,7 +34,6 @@ export default async function ConnectionsPage() {
             ? "Every source is connected."
             : `${missing} source${missing === 1 ? " is" : "s are"} not connected.`
         }
-        qualifier="An unconnected source records nothing, for everyone, silently."
       />
 
       {projects.length === 0 ? (

@@ -116,13 +116,11 @@ export function PageHeader({
   backLink,
   meta,
   title,
-  qualifier,
   actions,
 }: {
   backLink?: { href: string; label: string };
   meta?: string[];
   title: string;
-  qualifier?: string;
   actions?: ReactNode;
 }) {
   return (
@@ -138,9 +136,6 @@ export function PageHeader({
         ) : null}
         {meta ? <MetaLine items={meta} /> : null}
         <h1 className="font-serif text-display text-ink-900">{title}</h1>
-        {qualifier ? (
-          <p className="max-w-160 text-body text-ink-500">{qualifier}</p>
-        ) : null}
       </div>
       {actions ? (
         <div className="flex items-end gap-3 self-end">{actions}</div>

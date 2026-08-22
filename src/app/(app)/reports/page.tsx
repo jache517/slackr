@@ -38,7 +38,6 @@ export default async function ReportsPage() {
             ? "Every report is ready."
             : `${blocked} report${blocked === 1 ? "" : "s"} would understate someone.`
         }
-        qualifier="A report is only as complete as the accounts feeding it."
       />
 
       {ordered.length === 0 ? (

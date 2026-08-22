@@ -25,7 +25,6 @@ export default async function SettingsPage() {
     <>
       <PageHeader
         title="Your account"
-        qualifier="Everything here belongs to the address you signed in with."
         actions={<SignOutButton />}
       />
 
