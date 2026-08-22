@@ -317,7 +317,11 @@ Request:
 
 Response: `200 MemberRoleContext`.
 
-The authenticated member may update only their linked member record. The owner may record data on behalf of a member, but the server derives `submissionType`; the client cannot choose it.
+The current A7 implementation is owner-scoped: only the authenticated Project
+owner may write this endpoint, and the server always records
+`submissionType: "projectOwnerRecorded"`. Member self-service remains deferred
+until the verified member-linking decision is implemented. The client cannot
+choose `submissionType` or `submittedByUserId`.
 
 ## Source API
 
@@ -436,10 +440,10 @@ Used by the team-only Dashboard and Member Detail views.
         "lastActiveAt": "2026-08-13T04:20:00Z"
       },
       "evidenceAlerts": [{
-        "code": "NO_RECENT_OBSERVED_ACTIVITY",
+        "code": "ROLE_CONTEXT_MISSING",
         "level": "attention",
-        "message": "No activity was observed in connected sources during the configured window.",
-        "sourceTypes": ["github", "googleDocs"]
+        "message": "Role context not recorded",
+        "sourceTypes": []
       }]
     }]
   }
@@ -459,7 +463,12 @@ connected with no mapped activity, the summary exists with zero counts and
 `lastActiveAt: null`. When a provider fails, `sourceStates` carries the failure;
 the summary is either `null` or explicitly stale data according to `isStale`.
 
-`evidenceAlerts` are deterministic, team-only prompts. Allowed alerts cover unavailable sources, unmapped identity, missing role/context, or a transparent monitoring-window rule. They must not be named `High`/`Low`, claim overall contribution, or enter the instructor report. The team UI shows the rule and time window.
+`evidenceAlerts` are deterministic, team-only prompts. The current A7 rules
+cover `SOURCE_UNAVAILABLE`, `SOURCE_IDENTITY_NOT_MAPPED`,
+`ROLE_CONTEXT_MISSING`, and `MISSING_WORK_CONTEXT`. The monitoring-window rule
+`NO_RECENT_OBSERVED_ACTIVITY` is disabled until a concrete window contract is
+approved. Alerts must not be named `High`/`Low`, claim overall contribution, or
+enter the instructor report.
 
 Activity counts are evidence only and must not become scores or rankings. Meetings are not implemented in MVP v1.
 
@@ -469,20 +478,22 @@ Activity counts are evidence only and must not become scores or rankings. Meetin
 
 Optional query: `?memberId=member-uuid`.
 
-Response: `200 Array<{ id, projectId, memberId, contextText, submittedByUserId, submissionType, createdAt }>`.
+Response: `200 { data: Array<{ id, projectId, memberId, contextText, submittedByUserId, submissionType, createdAt }> }`.
 
 No matching context returns an empty array `[]`, not `null`.
+The JSON response is wrapped as `{ "data": [...] }`.
 
 ### `POST /api/projects/:projectId/context`
 
 Request: `{ "memberId": "member-uuid", "contextText": "..." }`
 
-Response: `201 { id, projectId, memberId, contextText, submittedByUserId, submissionType, createdAt }`.
+Response: `201 { data: { id, projectId, memberId, contextText, submittedByUserId, submissionType, createdAt } }`.
 
 The server derives `submittedByUserId` and `submissionType` from the verified
 requester; the client cannot choose either field. Member self-service requires a
 verified member-account link. Until that flow exists, owner-created entries are
 `projectOwnerRecorded`.
+The created response is wrapped as `{ "data": { ... } }`.
 
 Team-facing context retains the internal submitter user ID. Tutor-facing report
 context retains `submissionType` and `createdAt` but omits `submittedByUserId`.

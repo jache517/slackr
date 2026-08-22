@@ -138,11 +138,17 @@ export type GoogleDocsActivitySummary = {
   lastActiveAt: string | null;
 };
 
+export type ActivitySourceType = "github" | "googleDocs";
+
 export type EvidenceAlert = {
   code: string;
   level: "attention";
   message: string;
-  sourceTypes: SourceType[];
+  sourceTypes: ActivitySourceType[];
+};
+
+export type ActivitySourceStates = {
+  [TSourceType in ActivitySourceType]: SourceState<TSourceType>;
 };
 
 export type ActivityMemberSummary = {
@@ -157,7 +163,7 @@ export type ActivityMemberSummary = {
 export type ProjectActivity = {
   projectId: string;
   generatedAt: string;
-  sourceStates: SourceStates;
+  sourceStates: ActivitySourceStates;
   members: ActivityMemberSummary[];
 };
 
@@ -235,7 +241,7 @@ export type ContributionReport = {
   };
   generatedAt: string;
   connectedSources: SourceConnection[];
-  sourceStates: SourceStates;
+  sourceStates: ActivitySourceStates;
   members: ContributionReportMember[];
   disclaimer: string;
 };
