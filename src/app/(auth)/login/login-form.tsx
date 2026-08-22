@@ -1,40 +1,56 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { LogoMark } from "@/components/icons";
-import { Button, Card } from "@/components/ui";
+import { AuthCard, FormError, FormNotice } from "@/components/auth/auth-card";
+import { PasswordField, TextField } from "@/components/auth/fields";
+import { Button } from "@/components/ui";
+import { authErrorMessage, isOffline } from "@/lib/auth/auth-messages";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 /**
  * Email and password sign-in.
  *
  * The password never reaches this app's own storage: Supabase Auth holds the
- * hash and hands back a session. The failure message is deliberately the same
- * whether the address is unknown or the password is wrong, so the form cannot
- * be used to find out which addresses have accounts.
+ * hash and hands back a session.
  */
 export function LoginForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const justRegistered = params.get("registered") === "1";
+  const justReset = params.get("reset") === "1";
+  const linkProblem = params.get("error");
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
     setError(null);
 
-    const supabase = createBrowserSupabaseClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const supabase = createBrowserSupabaseClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    if (signInError) {
-      setError("That email and password do not match an account.");
+      if (signInError) {
+        setError(authErrorMessage(signInError, "sign-in"));
+        setBusy(false);
+        return;
+      }
+    } catch (cause) {
+      setError(
+        isOffline(cause)
+          ? "The sign-in request did not reach Slackr. Check your connection."
+          : "Something went wrong. Try again.",
+      );
       setBusy(false);
       return;
     }
@@ -43,82 +59,74 @@ export function LoginForm() {
     router.refresh();
   }
 
-  const ready = email.length > 0 && password.length > 0;
+  const ready = email.trim().length > 0 && password.length > 0;
 
   return (
-    <Card className="w-full max-w-110">
-      <form onSubmit={signIn} className="flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <LogoMark className="shrink-0" />
-          <span className="text-section font-semibold text-ink-900">Slackr</span>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <h1 className="font-serif text-subhead text-ink-900">
-            Sign in to Slackr
-          </h1>
-          <p className="text-body text-ink-500">
-            Use the email address your group knows you by.
-          </p>
-        </div>
-
-        {error ? (
-          <p
-            role="alert"
-            className="rounded-control bg-tint-red px-3 py-2 text-body text-red-700"
-          >
-            {error}
-          </p>
+    <AuthCard
+      title="Sign in to Slackr"
+      intro="Use the email address your group knows you by."
+      footer={
+        <>
+          New to Slackr?{" "}
+          <Link href="/signup" className="font-semibold text-indigo-600">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={signIn} noValidate className="flex flex-col gap-6">
+        {justRegistered ? (
+          <FormNotice>Account created. Sign in to get started.</FormNotice>
         ) : null}
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-body font-semibold text-ink-900">
-            Email address
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            aria-invalid={error ? true : undefined}
-            className={control}
-          />
-        </div>
+        {justReset ? (
+          <FormNotice>Password updated. Sign in with it now.</FormNotice>
+        ) : null}
 
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="password"
-            className="text-body font-semibold text-ink-900"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            aria-invalid={error ? true : undefined}
-            className={control}
-          />
-        </div>
+        {linkProblem === "expired" ? (
+          <FormError id="link-error">
+            That link has expired. Request a new one.
+          </FormError>
+        ) : null}
+
+        {error ? <FormError id="signin-error">{error}</FormError> : null}
+
+        <TextField
+          label="Email address"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          autoFocus
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+
+        <PasswordField
+          label="Password"
+          name="password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          action={
+            <Link
+              href="/forgot-password"
+              className="text-body font-medium text-indigo-600"
+            >
+              Forgot password?
+            </Link>
+          }
+        />
 
         <Button
           type="submit"
           aria-busy={busy || undefined}
           disabledReason={ready ? undefined : "Enter your email and password."}
         >
-          Sign in
+          {busy ? "Signing in…" : "Sign in"}
         </Button>
       </form>
-    </Card>
+    </AuthCard>
   );
 }
-
-const control =
-  "min-h-10 w-full rounded-control border border-ink-300 bg-surface-card px-3 text-body text-ink-900 transition-colors duration-[120ms] hover:border-ink-700 aria-invalid:border-red-700";
