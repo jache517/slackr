@@ -158,7 +158,7 @@ export default async function ProjectsPage() {
   return (
     <>
       <PageHeader
-        title="My projects"
+        title="My Projects"
         actions={
           <ButtonLink href="/projects/new">
             <PlusIcon />
