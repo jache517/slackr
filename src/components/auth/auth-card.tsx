@@ -30,7 +30,7 @@ export function AuthCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <h1 className="font-serif text-subhead text-ink-900">{title}</h1>
+            <h1 className="text-subhead font-semibold text-ink-900">{title}</h1>
             <p className="text-body text-ink-500">{intro}</p>
           </div>
 
