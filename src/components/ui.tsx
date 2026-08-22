@@ -116,11 +116,14 @@ export function PageHeader({
   backLink,
   meta,
   title,
+  badge,
   actions,
 }: {
   backLink?: { href: string; label: string };
   meta?: string[];
   title: string;
+  /** Status shown beside the title, for pages whose subject has one. */
+  badge?: ReactNode;
   actions?: ReactNode;
 }) {
   return (
@@ -135,7 +138,10 @@ export function PageHeader({
           </Link>
         ) : null}
         {meta ? <MetaLine items={meta} /> : null}
-        <h1 className="text-display font-semibold text-ink-900">{title}</h1>
+        <span className="flex flex-wrap items-center gap-3">
+          <h1 className="text-display font-semibold text-ink-900">{title}</h1>
+          {badge}
+        </span>
       </div>
       {actions ? (
         <div className="flex items-end gap-3 self-end">{actions}</div>
