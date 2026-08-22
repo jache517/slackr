@@ -329,6 +329,38 @@ The authenticated member may update only their linked member record. The owner m
 
 GitHub supports public repositories only in MVP v1. Google connection uses a server-side authorisation-code flow; provider tokens never appear in API responses. Disconnect and manual resync are outside MVP v1.
 
+### A4 initiation rules
+
+`POST /api/projects/:projectId/sources/github` accepts only a strict JSON object
+with `repositoryUrl`. The URL must be an HTTPS `github.com` repository URL with
+exactly owner/repository path segments, no credentials, port, query, fragment,
+or extra segment. A trailing slash or `.git` suffix is removed. The server
+anonymously verifies the repository through GitHub's repository metadata API and
+persists only the provider-confirmed lowercase `externalId`, canonical
+`displayName`, and `lastSyncedAt: null`. After the source row is created, the
+server immediately performs a bounded initial GitHub commit collection using the
+persisted repository identity. The source is still returned to the client if that
+first sync cannot finish; in that case `lastSyncedAt` remains `null` until a
+later successful sync completes.
+
+`POST /api/projects/:projectId/sources/google` accepts only `documentUrl`. It
+requires an HTTPS `docs.google.com/document/d/{documentId}` URL, strips
+query/fragment and presentation suffixes, and preserves the document ID case.
+It creates a ten-minute, one-time, server-trusted OAuth intent and returns only
+`200 { data: { authorizationUrl } }`; it does not create a SourceConnection or
+increase `connectedSourceCount`. The callback remains an A6 implementation gate.
+
+Each Project may have at most one source of each supported type. A duplicate
+external source returns `409 SOURCE_ALREADY_CONNECTED`; a different source of
+the same type returns `409 SOURCE_TYPE_ALREADY_CONNECTED`. The database
+constraint is the race-safe source of truth. Invalid input returns
+`400 VALIDATION_ERROR`, inaccessible Projects return `404 PROJECT_NOT_FOUND`,
+GitHub inaccessible repositories return `404 GITHUB_REPOSITORY_NOT_ACCESSIBLE`,
+GitHub rate limits return `429 GITHUB_RATE_LIMITED`, upstream/network failures
+return `502 GITHUB_PROVIDER_ERROR`, missing Google configuration returns
+`503 GOOGLE_OAUTH_NOT_CONFIGURED`, and intent-store failure returns
+`503 GOOGLE_OAUTH_TEMPORARILY_UNAVAILABLE`.
+
 Source status is reported separately from identity mapping:
 
 - `unconnected`: no `SourceConnection` and no evidence;
