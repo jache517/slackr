@@ -31,7 +31,7 @@ export function Button({
   children: ReactNode;
   className?: string;
   disabledReason?: string;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+} & React.ComponentProps<"button">) {
   const blocked = Boolean(disabledReason);
   return (
     <button

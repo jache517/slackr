@@ -114,6 +114,14 @@ export function ClockIcon({ size = 18, className }: IconProps) {
   );
 }
 
+export function CloseIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M4.5 4.5l9 9M13.5 4.5l-9 9" />
+    </svg>
+  );
+}
+
 export function QuoteIcon({ size = 18, className }: IconProps) {
   return (
     <svg {...base(size, className)}>
