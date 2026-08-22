@@ -13,6 +13,13 @@ export type TrendDirection = "rising" | "steady" | "declining" | "no_data";
 
 export type SourceKey = "github" | "google_docs" | "google_meet";
 
+/** Every source the product can collect from, in the order screens list them. */
+export const ALL_SOURCE_KEYS: SourceKey[] = [
+  "github",
+  "google_docs",
+  "google_meet",
+];
+
 export const SOURCE_LABELS: Record<SourceKey, string> = {
   github: "GitHub",
   google_docs: "Google Docs",
@@ -35,6 +42,21 @@ export type MemberRecord = {
   weeklyEvents: number[];
 };
 
+/**
+ * One row of the project's source list. Every project has an entry for all
+ * three sources whether or not it has connected them, because "not connected"
+ * is the fact the screen most needs to show: an unconnected source is blank
+ * for everyone, silently.
+ */
+export type SourceRecord = {
+  key: SourceKey;
+  label: string;
+  connected: boolean;
+  /** The repository or document as the provider names it. */
+  displayName: string | null;
+  lastSyncLabel: string | null;
+};
+
 export type UnmatchedAccount = {
   source: SourceKey;
   handle: string;
@@ -53,9 +75,18 @@ export type ProjectRecord = {
   weeklyEvents: number[];
   statusLine: string;
   connectedSources: SourceKey[];
+  sources: SourceRecord[];
   unmatchedAccount: UnmatchedAccount | null;
   meetingsHeld: number;
   lastCollected: string;
+  deadlineLabel: string;
+  /**
+   * The share of members with at least one recorded event. It says how much
+   * of the group the connected sources can actually see, which is not the
+   * same as how much anyone did.
+   */
+  coveragePercent: number;
+  membersWithActivity: number;
   members: MemberRecord[];
 };
 
@@ -140,6 +171,29 @@ export function lastActiveLabel(at: string | null, now: number) {
   if (days <= 0) return "Today";
   if (days === 1) return "Yesterday";
   return `${days} days ago`;
+}
+
+/** How long ago a sync ran, at the granularity a reader cares about. */
+export function syncLabel(at: string | null, now: number) {
+  if (!at) return null;
+
+  const minutes = Math.max(0, Math.round((now - new Date(at).getTime()) / 60_000));
+  if (minutes < 2) return "just now";
+  if (minutes < 60) return `${minutes} minutes ago`;
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+export function fullDate(at: string) {
+  return new Date(`${at}T00:00:00`).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export function shortDate(at: string) {

@@ -2,11 +2,15 @@ import Link from "next/link";
 
 import { CheckIcon, WarningIcon } from "@/components/icons";
 import { Card, PageHeader } from "@/components/ui";
-import { SOURCE_LABELS, listProjects, type SourceKey } from "@/lib/data/queries";
+import {
+  ALL_SOURCE_KEYS,
+  SOURCE_LABELS,
+  listProjects,
+} from "@/lib/data/queries";
 
 export const metadata = { title: "Connections - Slackr" };
 
-const ALL_SOURCES: SourceKey[] = ["github", "google_docs", "google_meet"];
+const ALL_SOURCES = ALL_SOURCE_KEYS;
 
 /**
  * What each project is collecting from, and what it is missing.

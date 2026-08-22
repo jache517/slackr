@@ -6,11 +6,15 @@ import { requireSession } from "@/lib/auth/require-session";
 import {
   bucket,
   dueLabelFor,
+  fullDate,
   initialsOf,
   lastActiveLabel,
   shortDate,
   slugify,
+  syncLabel,
   trendOf,
+  ALL_SOURCE_KEYS,
+  SOURCE_LABELS,
   type MemberRecord,
   type ProjectRecord,
   type ProjectStatus,
@@ -19,12 +23,14 @@ import {
 } from "./types";
 
 export {
+  ALL_SOURCE_KEYS,
   SOURCE_LABELS,
   projectInitials,
   type MemberRecord,
   type ProjectRecord,
   type ProjectStatus,
   type SourceKey,
+  type SourceRecord,
   type TrendDirection,
   type UnmatchedAccount,
 } from "./types";
@@ -226,6 +232,23 @@ function assemble(
       ? "too_early"
       : "collecting";
 
+  const sources = ALL_SOURCE_KEYS.map((key) => {
+    const row = sourceRows.find((entry) => entry.source_type === key);
+
+    return {
+      key,
+      label: SOURCE_LABELS[key],
+      connected: Boolean(row),
+      displayName: row?.display_name ?? null,
+      lastSyncLabel: syncLabel(row?.last_synced_at ?? null, now),
+    };
+  });
+
+  const membersWithActivity = members.filter(
+    (member) =>
+      member.commits + member.docActivity + member.meetingsAttended > 0,
+  ).length;
+
   const lastSynced = sourceRows
     .map((row) => row.last_synced_at)
     .filter((value): value is string => Boolean(value))
@@ -244,9 +267,16 @@ function assemble(
     connectedSources: [
       ...new Set(sourceRows.map((row) => row.source_type as SourceKey)),
     ],
+    sources,
     unmatchedAccount,
     meetingsHeld: mine(rows.meetings).length,
     lastCollected: lastSynced ? shortDate(lastSynced) : "Not yet",
+    deadlineLabel: fullDate(project.deadline),
+    coveragePercent:
+      members.length === 0
+        ? 0
+        : Math.round((membersWithActivity / members.length) * 100),
+    membersWithActivity,
     members,
   };
 }
