@@ -22,6 +22,23 @@ const optionalUrl = z.preprocess(
   z.string().trim().url().optional(),
 );
 
+const optionalPositiveInteger = z.preprocess(
+  (value) => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+
+      if (trimmed === "") {
+        return undefined;
+      }
+
+      return Number(trimmed);
+    }
+
+    return value;
+  },
+  z.number().int().positive().optional(),
+);
+
 const serverEnvSchema = z.object({
   APP_URL: optionalUrl,
   SUPABASE_SECRET_KEY: optionalText,
@@ -29,6 +46,11 @@ const serverEnvSchema = z.object({
   GITHUB_CLIENT_SECRET: optionalText,
   GOOGLE_CLIENT_ID: optionalText,
   GOOGLE_CLIENT_SECRET: optionalText,
+  AI_REPORT_PROVIDER: z.enum(["none", "openai"]).default("none"),
+  OPENAI_API_KEY: optionalText,
+  OPENAI_MODEL: optionalText,
+  OPENAI_TIMEOUT_MS: optionalPositiveInteger,
+  OPENAI_MAX_OUTPUT_TOKENS: optionalPositiveInteger,
 });
 
 export function getOptionalServerEnv() {
@@ -39,6 +61,11 @@ export function getOptionalServerEnv() {
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    AI_REPORT_PROVIDER: process.env.AI_REPORT_PROVIDER,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_MODEL: process.env.OPENAI_MODEL,
+    OPENAI_TIMEOUT_MS: process.env.OPENAI_TIMEOUT_MS,
+    OPENAI_MAX_OUTPUT_TOKENS: process.env.OPENAI_MAX_OUTPUT_TOKENS,
   });
 
   if (!result.success) {
@@ -48,6 +75,26 @@ export function getOptionalServerEnv() {
   }
 
   return result.data;
+}
+
+export function getAiReportConfig() {
+  const env = getOptionalServerEnv();
+
+  if (env.AI_REPORT_PROVIDER === "none") {
+    return { provider: "none" as const };
+  }
+
+  if (!env.OPENAI_API_KEY) {
+    throw new EnvironmentConfigurationError(["OPENAI_API_KEY"]);
+  }
+
+  return {
+    provider: "openai" as const,
+    apiKey: env.OPENAI_API_KEY,
+    model: env.OPENAI_MODEL ?? "gpt-5.6-terra",
+    timeoutMs: env.OPENAI_TIMEOUT_MS ?? 20_000,
+    maxOutputTokens: env.OPENAI_MAX_OUTPUT_TOKENS ?? 2_200,
+  };
 }
 
 const GOOGLE_CALLBACK_PATH = "/api/integrations/google/callback";
