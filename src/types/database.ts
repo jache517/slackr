@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type SourceType = "github" | "google_docs";
+export type SourceType = "github" | "google_docs" | "google_meet";
 export type DocsActivityType = "edit" | "comment" | "suggestion";
 export type ContextSubmissionType =
   | "member_self_reported"
@@ -18,30 +18,27 @@ export type Database = {
       projects: {
         Row: {
           id: string;
-          name: string;
-          course: string;
-          group_name: string;
+          title: string;
           deadline: string;
+          description: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          name: string;
-          course: string;
-          group_name: string;
+          title: string;
           deadline: string;
+          description?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          name?: string;
-          course?: string;
-          group_name?: string;
+          title?: string;
           deadline?: string;
+          description?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
@@ -93,6 +90,9 @@ export type Database = {
           display_name: string;
           connected_at: string;
           last_synced_at: string | null;
+          sync_error_code: string | null;
+          sync_error_message: string | null;
+          sync_error_at: string | null;
         };
         Insert: {
           id?: string;
@@ -102,6 +102,9 @@ export type Database = {
           display_name: string;
           connected_at?: string;
           last_synced_at?: string | null;
+          sync_error_code?: string | null;
+          sync_error_message?: string | null;
+          sync_error_at?: string | null;
         };
         Update: {
           id?: string;
@@ -111,6 +114,9 @@ export type Database = {
           display_name?: string;
           connected_at?: string;
           last_synced_at?: string | null;
+          sync_error_code?: string | null;
+          sync_error_message?: string | null;
+          sync_error_at?: string | null;
         };
         Relationships: [];
       };
@@ -124,6 +130,7 @@ export type Database = {
           commit_message: string;
           author_name: string | null;
           author_email: string | null;
+          author_username: string | null;
           authored_at: string;
           created_at: string;
         };
@@ -136,6 +143,7 @@ export type Database = {
           commit_message: string;
           author_name?: string | null;
           author_email?: string | null;
+          author_username?: string | null;
           authored_at: string;
           created_at?: string;
         };
@@ -148,6 +156,7 @@ export type Database = {
           commit_message?: string;
           author_name?: string | null;
           author_email?: string | null;
+          author_username?: string | null;
           authored_at?: string;
           created_at?: string;
         };
@@ -261,6 +270,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      meetings: {
+        Row: {
+          id: string;
+          project_id: string;
+          source_connection_id: string;
+          title: string;
+          provider_meeting_id: string | null;
+          held_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          source_connection_id: string;
+          title: string;
+          provider_meeting_id?: string | null;
+          held_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          source_connection_id?: string;
+          title?: string;
+          provider_meeting_id?: string | null;
+          held_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      meeting_attendance: {
+        Row: {
+          id: string;
+          project_id: string;
+          meeting_id: string;
+          member_id: string | null;
+          attendee_name: string | null;
+          attendee_email: string | null;
+          joined_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          meeting_id: string;
+          member_id?: string | null;
+          attendee_name?: string | null;
+          attendee_email?: string | null;
+          joined_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          meeting_id?: string;
+          member_id?: string | null;
+          attendee_name?: string | null;
+          attendee_email?: string | null;
+          joined_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       google_oauth_intents: {
         Row: {
           id: string;
@@ -299,8 +371,20 @@ export type Database = {
       };
     };
     Views: Record<never, never>;
-    Functions: {
-      create_google_oauth_intent: {
+      Functions: {
+        inspect_google_oauth_intent: {
+          Args: {
+            p_state_hash: string;
+          };
+          Returns: Array<{
+            project_id: string;
+            requested_by_user_id: string;
+            external_id: string;
+            expires_at: string;
+            consumed_at: string | null;
+          }>;
+        };
+        create_google_oauth_intent: {
         Args: {
           p_project_id: string;
           p_external_id: string;

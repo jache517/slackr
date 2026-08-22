@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Design working files, not application source.
+    "design/**",
+    // Local Supabase runtime artefacts, not application source.
+    "supabase/.temp/**",
   ]),
 ]);
 

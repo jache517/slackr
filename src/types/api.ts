@@ -1,6 +1,6 @@
 export type { ApiError, ApiSuccess } from "@/lib/api/response";
 
-export type SourceType = "github" | "googleDocs";
+export type SourceType = "github" | "googleDocs" | "googleMeet";
 export type DocsActivityType = "edit" | "comment" | "suggestion";
 export type ContextSubmissionType =
   | "memberSelfReported"
@@ -8,20 +8,17 @@ export type ContextSubmissionType =
 
 export type Project = {
   id: string;
-  name: string;
-  course: string;
-  groupName: string;
+  title: string;
   deadline: string;
+  description: string | null;
   memberCount: number;
   connectedSourceCount: number;
   createdAt: string;
   updatedAt: string;
 };
 
-export type CreateProjectRequest = Pick<
-  Project,
-  "name" | "course" | "groupName" | "deadline"
->;
+export type CreateProjectRequest = Pick<Project, "title" | "deadline"> &
+  Partial<Pick<Project, "description">>;
 
 export type UpdateProjectRequest = Partial<CreateProjectRequest>;
 

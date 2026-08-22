@@ -10,7 +10,7 @@ import type { SourceConnection, SourceType } from "@/types/api";
 import type { Database } from "@/types/database";
 
 const SOURCE_CONNECTION_COLUMNS =
-  "id, project_id, source_type, external_id, display_name, connected_at, last_synced_at";
+  "id, project_id, source_type, external_id, display_name, connected_at, last_synced_at, sync_error_code, sync_error_message, sync_error_at";
 
 type SourceRepositoryFailure = { ok: false; reason: "database_error" };
 
