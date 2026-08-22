@@ -1,22 +1,44 @@
+import "server-only";
+
+import { cache } from "react";
+
+import { requireSession } from "@/lib/auth/require-session";
 import {
-  PROJECTS,
+  bucket,
+  dueLabelFor,
+  initialsOf,
+  lastActiveLabel,
+  shortDate,
+  slugify,
+  trendOf,
   type MemberRecord,
   type ProjectRecord,
+  type ProjectStatus,
   type SourceKey,
-} from "./fixtures";
+  type UnmatchedAccount,
+} from "./types";
 
-export type {
-  MemberRecord,
-  ProjectRecord,
-  ProjectStatus,
-  SourceKey,
-  TrendDirection,
-  UnmatchedAccount,
-} from "./fixtures";
+export {
+  SOURCE_LABELS,
+  projectInitials,
+  type MemberRecord,
+  type ProjectRecord,
+  type ProjectStatus,
+  type SourceKey,
+  type TrendDirection,
+  type UnmatchedAccount,
+} from "./types";
 
 /**
- * Read seam for the interface. These are async so swapping the fixture
- * arrays for Supabase queries does not change any caller.
+ * The read layer. Every screen's figures are assembled here from raw activity
+ * rows, so a share, a sparkline and a raw count can never disagree.
+ *
+ * Row-level security does the access control: these run as the signed-in
+ * user's client and simply see no rows they do not own.
+ *
+ * Both the session lookup and the reads are cached per render pass, so a
+ * screen calling `getProject`, `getProjectReport` and `getReadinessChecks`
+ * authenticates once and queries once.
  */
 
 export type MemberStats = MemberRecord & {
@@ -47,14 +69,254 @@ export function memberEvents(member: MemberRecord) {
   return member.commits + member.docActivity + member.meetingsAttended;
 }
 
+type RawProject = {
+  id: string;
+  title: string;
+  deadline: string;
+};
+
+/** Everything one project's screens need, in six round trips rather than N. */
+async function fetchProjects(projectIds?: string[]) {
+  const { supabase } = await requireSession();
+
+  let projectQuery = supabase
+    .from("projects")
+    .select("id, title, deadline")
+    .order("deadline", { ascending: true });
+  if (projectIds) projectQuery = projectQuery.in("id", projectIds);
+
+  const { data: projects, error } = await projectQuery;
+  if (error) throw new Error(`Could not read projects: ${error.message}`);
+  if (!projects || projects.length === 0) return [];
+
+  const ids = projects.map((project) => project.id);
+
+  const [members, sources, commits, docs, meetings, attendance] =
+    await Promise.all([
+      supabase
+        .from("members")
+        .select("id, project_id, name, github_username, google_email")
+        .in("project_id", ids)
+        .order("name", { ascending: true }),
+      supabase
+        .from("source_connections")
+        .select("id, project_id, source_type, display_name, last_synced_at")
+        .in("project_id", ids),
+      supabase
+        .from("github_activity")
+        .select("project_id, member_id, author_username, authored_at")
+        .in("project_id", ids),
+      supabase
+        .from("docs_activity")
+        .select("project_id, member_id, occurred_at")
+        .in("project_id", ids),
+      supabase.from("meetings").select("id, project_id").in("project_id", ids),
+      supabase
+        .from("meeting_attendance")
+        .select("project_id, member_id, joined_at")
+        .in("project_id", ids),
+    ]);
+
+  const now = Date.now();
+
+  return projects.map((project) =>
+    assemble(project, now, {
+      members: members.data ?? [],
+      sources: sources.data ?? [],
+      commits: commits.data ?? [],
+      docs: docs.data ?? [],
+      meetings: meetings.data ?? [],
+      attendance: attendance.data ?? [],
+    }),
+  );
+}
+
+type Rows = {
+  members: {
+    id: string;
+    project_id: string;
+    name: string;
+    github_username: string | null;
+    google_email: string | null;
+  }[];
+  sources: {
+    project_id: string;
+    source_type: string;
+    display_name: string;
+    last_synced_at: string | null;
+  }[];
+  commits: {
+    project_id: string;
+    member_id: string | null;
+    author_username: string | null;
+    authored_at: string;
+  }[];
+  docs: { project_id: string; member_id: string | null; occurred_at: string }[];
+  meetings: { id: string; project_id: string }[];
+  attendance: {
+    project_id: string;
+    member_id: string | null;
+    joined_at: string | null;
+  }[];
+};
+
+function assemble(
+  project: RawProject,
+  now: number,
+  rows: Rows,
+): ProjectRecord {
+  const mine = <T extends { project_id: string }>(list: T[]) =>
+    list.filter((row) => row.project_id === project.id);
+
+  const memberRows = mine(rows.members);
+  const commitRows = mine(rows.commits);
+  const docRows = mine(rows.docs);
+  const attendanceRows = mine(rows.attendance);
+  const sourceRows = mine(rows.sources);
+
+  const members: MemberRecord[] = memberRows.map((row) => {
+    const at = (list: { member_id: string | null }[], key: string) =>
+      list
+        .filter((entry) => entry.member_id === row.id)
+        .map((entry) => (entry as unknown as Record<string, string>)[key])
+        .filter(Boolean);
+
+    const commitTimes = at(commitRows, "authored_at");
+    const docTimes = at(docRows, "occurred_at");
+    const meetTimes = at(attendanceRows, "joined_at");
+    const all = [...commitTimes, ...docTimes, ...meetTimes].sort();
+    const series = bucket(all, now);
+
+    return {
+      id: row.id,
+      slug: slugify(row.name),
+      name: row.name,
+      initials: initialsOf(row.name),
+      githubUsername: row.github_username ?? "",
+      googleEmail: row.google_email ?? "",
+      commits: commitTimes.length,
+      docActivity: docTimes.length,
+      meetingsAttended: attendanceRows.filter(
+        (entry) => entry.member_id === row.id,
+      ).length,
+      lastActive: lastActiveLabel(all.at(-1) ?? null, now),
+      trend: trendOf(series),
+      weeklyEvents: series,
+    };
+  });
+
+  // The project's own series is the sum of its members', not a separate number.
+  const projectSeries = bucket(
+    [
+      ...commitRows.filter((row) => row.member_id).map((row) => row.authored_at),
+      ...docRows.filter((row) => row.member_id).map((row) => row.occurred_at),
+      ...attendanceRows
+        .filter((row) => row.member_id && row.joined_at)
+        .map((row) => row.joined_at as string),
+    ],
+    now,
+  );
+
+  const unmatchedAccount = findUnmatched(commitRows, sourceRows);
+  const totalEvents = projectSeries.reduce((sum, n) => sum + n, 0);
+
+  const status: ProjectStatus = unmatchedAccount
+    ? "needs_attention"
+    : totalEvents === 0
+      ? "too_early"
+      : "collecting";
+
+  const lastSynced = sourceRows
+    .map((row) => row.last_synced_at)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1);
+
+  return {
+    id: project.id,
+    title: project.title,
+    status,
+    dueLabel: dueLabelFor(project.deadline, now),
+    memberCount: members.length,
+    trend: trendOf(projectSeries),
+    weeklyEvents: totalEvents === 0 ? [] : projectSeries,
+    statusLine: statusLineFor(status, members.length, unmatchedAccount),
+    connectedSources: [
+      ...new Set(sourceRows.map((row) => row.source_type as SourceKey)),
+    ],
+    unmatchedAccount,
+    meetingsHeld: mine(rows.meetings).length,
+    lastCollected: lastSynced ? shortDate(lastSynced) : "Not yet",
+    members,
+  };
+}
+
+/**
+ * The largest GitHub account in this project that is matched to nobody. Its
+ * commits are being counted for no one, which is the one thing that makes a
+ * report understate someone.
+ */
+function findUnmatched(
+  commitRows: Rows["commits"],
+  sourceRows: Rows["sources"],
+): UnmatchedAccount | null {
+  const orphans = commitRows.filter(
+    (row) => !row.member_id && row.author_username,
+  );
+  if (orphans.length === 0) return null;
+
+  const byHandle = new Map<string, string[]>();
+  for (const row of orphans) {
+    const handle = row.author_username as string;
+    byHandle.set(handle, [...(byHandle.get(handle) ?? []), row.authored_at]);
+  }
+
+  const [handle, times] = [...byHandle.entries()].sort(
+    (a, b) => b[1].length - a[1].length,
+  )[0];
+
+  return {
+    source: "github",
+    handle,
+    commits: times.length,
+    repository:
+      sourceRows.find((row) => row.source_type === "github")?.display_name ??
+      "the repository",
+    since: shortDate([...times].sort()[0]),
+  };
+}
+
+function statusLineFor(
+  status: ProjectStatus,
+  memberCount: number,
+  unmatched: UnmatchedAccount | null,
+) {
+  if (status === "needs_attention" && unmatched) {
+    return `One GitHub account with ${unmatched.commits} commits is matched to nobody, so the report would understate someone.`;
+  }
+  if (status === "too_early") {
+    return "Nothing collected yet. There is not enough here to report on.";
+  }
+  return `Enough data to report on all ${memberCount} members.`;
+}
+
+/* ---------- Accessors ---------- */
+
+const loadAll = cache(async () => fetchProjects());
+
+const loadOne = cache(async (projectId: string) => {
+  const [project] = await fetchProjects([projectId]);
+  return project ?? null;
+});
+
 export async function listProjects(): Promise<ProjectRecord[]> {
-  return PROJECTS;
+  return loadAll();
 }
 
 export async function getProject(
   projectId: string,
 ): Promise<ProjectRecord | null> {
-  return PROJECTS.find((project) => project.id === projectId) ?? null;
+  return loadOne(projectId);
 }
 
 export async function getProjectReport(
@@ -156,7 +418,7 @@ export async function getReadinessChecks(
   }
 
   const sourceDetail: Record<SourceKey, string> = {
-    github: `group3/final-project - ${totals.commits} commits`,
+    github: `${project.unmatchedAccount?.repository ?? "the repository"} - ${totals.commits} commits`,
     google_docs: `Final Project Report - ${totals.docActivity} edits, comments and suggestions`,
     google_meet: `Weekly stand-up calendar - ${project.meetingsHeld} meetings, ${totals.attendances} attendances`,
   };
@@ -180,16 +442,4 @@ export async function getReadinessChecks(
   }
 
   return checks;
-}
-
-/**
- * Compact badge for a project: the first letter of its first two words.
- * "COMP30022 Final Project" -> "CF". Falls back to the first two characters
- * when the title is a single word.
- */
-export function projectInitials(title: string) {
-  const words = title.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return "";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[1][0]).toUpperCase();
 }

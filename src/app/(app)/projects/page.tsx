@@ -12,7 +12,7 @@ import {
   projectInitials,
   type ProjectRecord,
 } from "@/lib/data/queries";
-import type { ProjectStatus } from "@/lib/data/fixtures";
+import type { ProjectStatus } from "@/lib/data/types";
 
 export const metadata = { title: "Projects - Slackr" };
 

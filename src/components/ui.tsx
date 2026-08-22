@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { CheckIcon, ClockIcon, WarningIcon } from "@/components/icons";
-import type { TrendDirection } from "@/lib/data/fixtures";
+import type { TrendDirection } from "@/lib/data/types";
 
 /* ---------- Button ---------- */
 
