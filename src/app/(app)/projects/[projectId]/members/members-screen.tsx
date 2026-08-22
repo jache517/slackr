@@ -43,6 +43,63 @@ export function MembersScreen({
   const [rows, setRows] = useState<Row[]>(members);
   const [choice, setChoice] = useState("");
   const [matching, setMatching] = useState(false);
+  const [deciding, setDeciding] = useState(false);
+
+  /**
+   * Records that the account belongs to nobody here: a bot, a tutor, someone's
+   * second account. It is an answer to the warning, not a way of skipping it,
+   * so it is saved rather than only clearing the card.
+   */
+  async function assignToNobody() {
+    if (!unmatched || matching) return;
+
+    const account = unmatched;
+
+    setDeciding(true);
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/unattributed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ authorUsername: account.handle }),
+      });
+
+      if (!response.ok) {
+        const payload: unknown = await response.json().catch(() => null);
+        throw new Error(
+          isApiErrorResponse(payload)
+            ? payload.error.message
+            : "That decision could not be saved.",
+        );
+      }
+
+      setUnmatched(null);
+      setChoice("");
+      router.refresh();
+      showToast({
+        message: `${account.handle} is nobody's. Its ${account.commits} commits stay out of the report.`,
+        onUndo: async () => {
+          await fetch(`/api/projects/${projectId}/unattributed`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ authorUsername: account.handle }),
+          });
+          setUnmatched(account);
+          router.refresh();
+          showToast({ message: `${account.handle} is unresolved again.` });
+        },
+      });
+    } catch (decisionError) {
+      showToast({
+        message:
+          decisionError instanceof Error
+            ? decisionError.message
+            : "That decision could not be saved.",
+      });
+    } finally {
+      setDeciding(false);
+    }
+  }
 
   async function match() {
     if (!unmatched || !choice) return;
@@ -50,50 +107,9 @@ export function MembersScreen({
     const member = rows.find((row) => row.id === choice);
     const account = unmatched;
 
+    if (!member) return;
+
     setMatching(true);
-
-    // "Not a member of this project" is a decision, not a missing answer. It
-    // is recorded so the warning knows the account has been settled rather
-    // than never looked at.
-    if (!member) {
-      try {
-        const response = await fetch(
-          `/api/projects/${projectId}/unattributed`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ authorUsername: account.handle }),
-          },
-        );
-
-        if (!response.ok) {
-          const payload: unknown = await response.json().catch(() => null);
-          throw new Error(
-            isApiErrorResponse(payload)
-              ? payload.error.message
-              : "That decision could not be saved.",
-          );
-        }
-
-        setUnmatched(null);
-        setChoice("");
-        router.refresh();
-        showToast({
-          message: `${account.handle} is marked as nobody's. Its ${account.commits} commits stay out of the report.`,
-        });
-      } catch (decisionError) {
-        showToast({
-          message:
-            decisionError instanceof Error
-              ? decisionError.message
-              : "That decision could not be saved.",
-        });
-      } finally {
-        setMatching(false);
-      }
-
-      return;
-    }
 
     try {
       const response = await fetch(`/api/members/${member.id}`, {
@@ -212,7 +228,7 @@ export function MembersScreen({
                 </div>
                 <Button
                   onClick={match}
-                  disabled={matching}
+                  disabled={matching || deciding}
                   disabledReason={
                     matching
                       ? "Saving the match."
@@ -224,10 +240,20 @@ export function MembersScreen({
                 >
                   {matching ? "Matching..." : "Match"}
                 </Button>
+                <Button
+                  variant="secondary"
+                  onClick={assignToNobody}
+                  disabled={matching || deciding}
+                  aria-describedby="match-reason"
+                >
+                  {deciding ? "Saving..." : "Nobody's"}
+                </Button>
               </div>
               {/* Reserved height so revealing the reason never moves the row. */}
               <p id="match-reason" className="min-h-5 text-body text-ink-500">
-                {choice ? "" : "Choose a member first."}
+                {choice
+                  ? ""
+                  : "Choose a member, or mark the account as nobody's."}
               </p>
             </div>
           </div>
