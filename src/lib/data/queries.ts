@@ -4,6 +4,10 @@ import { cache } from "react";
 
 import { requireSession } from "@/lib/auth/require-session";
 import {
+  mapMemberRoleContext,
+  type MemberRoleContextRow,
+} from "@/lib/projects/project-mapper";
+import {
   bucket,
   dueLabelFor,
   fullDate,
@@ -29,6 +33,7 @@ export {
   SOURCE_LABELS,
   projectInitials,
   type MemberRecord,
+  type MemberRoleContextRecord,
   type ProjectRecord,
   type ProjectStatus,
   type SourceKey,
@@ -99,7 +104,15 @@ async function fetchProjects(projectIds?: string[]) {
 
   const ids = projects.map((project) => project.id);
 
-  const [members, sources, commits, docs, meetings, attendance] =
+  const [
+    members,
+    sources,
+    commits,
+    docs,
+    meetings,
+    attendance,
+    roleContexts,
+  ] =
     await Promise.all([
       supabase
         .from("members")
@@ -125,6 +138,12 @@ async function fetchProjects(projectIds?: string[]) {
         .from("meeting_attendance")
         .select("project_id, member_id, joined_at")
         .in("project_id", ids),
+      supabase
+        .from("member_role_context")
+        .select(
+          "id, project_id, member_id, primary_role, additional_roles, responsibilities, additional_context, submission_type, submitted_by_user_id, created_at, updated_at",
+        )
+        .in("project_id", ids),
     ]);
 
   const now = Date.now();
@@ -137,6 +156,7 @@ async function fetchProjects(projectIds?: string[]) {
       docs: docs.data ?? [],
       meetings: meetings.data ?? [],
       attendance: attendance.data ?? [],
+      roleContexts: roleContexts.data ?? [],
     }),
   );
 }
@@ -169,6 +189,7 @@ type Rows = {
     member_id: string | null;
     joined_at: string | null;
   }[];
+  roleContexts: MemberRoleContextRow[];
 };
 
 function assemble(
@@ -184,6 +205,9 @@ function assemble(
   const docRows = mine(rows.docs);
   const attendanceRows = mine(rows.attendance);
   const sourceRows = mine(rows.sources);
+  const roleContextByMemberId = new Map(
+    mine(rows.roleContexts).map((row) => [row.member_id, mapMemberRoleContext(row)]),
+  );
 
   const members: MemberRecord[] = memberRows.map((row) => {
     const at = (list: { member_id: string | null }[], key: string) =>
@@ -213,6 +237,19 @@ function assemble(
       lastActive: lastActiveLabel(all.at(-1) ?? null, now),
       trend: trendOf(series),
       weeklyEvents: series,
+      roleContext: roleContextByMemberId.get(row.id)
+        ? {
+            primaryRole: roleContextByMemberId.get(row.id)!.primaryRole,
+            additionalRoles: roleContextByMemberId.get(row.id)!.additionalRoles,
+            responsibilities:
+              roleContextByMemberId.get(row.id)!.responsibilities,
+            additionalContext:
+              roleContextByMemberId.get(row.id)!.additionalContext,
+            submissionType:
+              roleContextByMemberId.get(row.id)!.submissionType,
+            updatedAt: roleContextByMemberId.get(row.id)!.updatedAt,
+          }
+        : null,
     };
   });
 

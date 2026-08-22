@@ -5,7 +5,11 @@ import { useRef, useState } from "react";
 import { WarningIcon } from "@/components/icons";
 import { useToast } from "@/components/toast";
 import { Button, Card, PageHeader } from "@/components/ui";
-import type { MemberRecord, UnmatchedAccount } from "@/lib/data/queries";
+import type {
+  MemberRecord,
+  MemberRoleContextRecord,
+  UnmatchedAccount,
+} from "@/lib/data/queries";
 
 /**
  * Members, with the match flow and the per-row account edit.
@@ -157,6 +161,8 @@ export function MembersScreen({
           <RosterTable title={title} rows={rows} setRows={setRows} />
         </div>
       </Card>
+
+      <RoleContextSection rows={rows} setRows={setRows} />
     </>
   );
 }
@@ -334,5 +340,289 @@ function EditRow({
         </div>
       </td>
     </tr>
+  );
+}
+
+function RoleContextSection({
+  rows,
+  setRows,
+}: {
+  rows: Row[];
+  setRows: React.Dispatch<React.SetStateAction<Row[]>>;
+}) {
+  const showToast = useToast();
+  const [editing, setEditing] = useState<string | null>(null);
+
+  return (
+    <Card>
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-subhead font-semibold text-ink-900">
+            Role and responsibilities
+          </h2>
+          <p className="mt-1 text-body text-ink-500">
+            Add context for how each member describes their project role.
+          </p>
+        </div>
+
+        <div className="divide-y divide-rule">
+          {rows.map((member) =>
+            editing === member.id ? (
+              <RoleContextEditor
+                key={member.id}
+                member={member}
+                onCancel={() => setEditing(null)}
+                onSaved={(roleContext) => {
+                  setRows((current) =>
+                    current.map((row) =>
+                      row.id === member.id ? { ...row, roleContext } : row,
+                    ),
+                  );
+                  setEditing(null);
+                  showToast({ message: `Role context saved for ${member.name}.` });
+                }}
+              />
+            ) : (
+              <RoleContextRow
+                key={member.id}
+                member={member}
+                onEdit={() => setEditing(member.id)}
+              />
+            ),
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function RoleContextRow({
+  member,
+  onEdit,
+}: {
+  member: Row;
+  onEdit: () => void;
+}) {
+  const roleContext = member.roleContext;
+
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-4 py-4 first:pt-0 last:pb-0">
+      <div className="min-w-0">
+        <p className="text-body font-semibold text-ink-900">{member.name}</p>
+        {roleContext ? (
+          <div className="mt-1 flex flex-col gap-1 text-body text-ink-500">
+            <p>{roleContext.primaryRole}</p>
+            {roleContext.responsibilities.length > 0 ? (
+              <p>{roleContext.responsibilities.join(" · ")}</p>
+            ) : null}
+            <p className="text-eyebrow uppercase tracking-[0.06em] text-ink-400">
+              {roleContext.submissionType === "memberSelfReported"
+                ? "Self-reported"
+                : "Recorded by project owner"}
+            </p>
+          </div>
+        ) : (
+          <p className="mt-1 text-body text-ink-500">No role context recorded.</p>
+        )}
+      </div>
+      <Button
+        variant="quiet"
+        className="shrink-0"
+        onClick={onEdit}
+      >
+        {roleContext ? "Edit role" : "Add role"}
+      </Button>
+    </div>
+  );
+}
+
+function RoleContextEditor({
+  member,
+  onSaved,
+  onCancel,
+}: {
+  member: Row;
+  onSaved: (roleContext: MemberRoleContextRecord) => void;
+  onCancel: () => void;
+}) {
+  const initial = member.roleContext;
+  const [primaryRole, setPrimaryRole] = useState(initial?.primaryRole ?? "");
+  const [additionalRoles, setAdditionalRoles] = useState(
+    initial?.additionalRoles.join("\n") ?? "",
+  );
+  const [responsibilities, setResponsibilities] = useState(
+    initial?.responsibilities.join("\n") ?? "",
+  );
+  const [additionalContext, setAdditionalContext] = useState(
+    initial?.additionalContext ?? "",
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedPrimaryRole = primaryRole.trim();
+    if (!trimmedPrimaryRole) {
+      setError("Enter a primary role.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/members/${member.id}/role-context`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          primaryRole: trimmedPrimaryRole,
+          additionalRoles: splitLines(additionalRoles),
+          responsibilities: splitLines(responsibilities),
+          additionalContext: additionalContext.trim() || null,
+        }),
+      });
+      const payload: unknown = await response.json();
+
+      if (!response.ok || !isRoleContextResponse(payload)) {
+        throw new Error(
+          isApiErrorResponse(payload)
+            ? payload.error.message
+            : "Role context could not be saved.",
+        );
+      }
+
+      onSaved({
+        primaryRole: payload.data.primaryRole,
+        additionalRoles: payload.data.additionalRoles,
+        responsibilities: payload.data.responsibilities,
+        additionalContext: payload.data.additionalContext,
+        submissionType: payload.data.submissionType,
+        updatedAt: payload.data.updatedAt,
+      });
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Role context could not be saved.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={save}
+      className="grid gap-4 py-4 first:pt-0"
+      aria-label={`Edit role context for ${member.name}`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-body font-semibold text-ink-900">{member.name}</h3>
+        <span className="text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500">
+          Project owner recorded
+        </span>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="flex flex-col gap-1.5 text-body font-semibold text-ink-900">
+          Primary role
+          <input
+            autoFocus
+            value={primaryRole}
+            onChange={(event) => setPrimaryRole(event.target.value)}
+            className={editControl}
+            maxLength={120}
+            placeholder="e.g. Backend Developer"
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 text-body font-semibold text-ink-900">
+          Additional roles
+          <textarea
+            value={additionalRoles}
+            onChange={(event) => setAdditionalRoles(event.target.value)}
+            className={`${editControl} min-h-20 py-2`}
+            placeholder="One role per line"
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 text-body font-semibold text-ink-900 md:col-span-2">
+          Responsibilities
+          <textarea
+            value={responsibilities}
+            onChange={(event) => setResponsibilities(event.target.value)}
+            className={`${editControl} min-h-24 py-2`}
+            placeholder="One responsibility per line"
+          />
+        </label>
+        <label className="flex flex-col gap-1.5 text-body font-semibold text-ink-900 md:col-span-2">
+          Additional context
+          <textarea
+            value={additionalContext}
+            onChange={(event) => setAdditionalContext(event.target.value)}
+            className={`${editControl} min-h-24 py-2`}
+            maxLength={4000}
+            placeholder="Optional context"
+          />
+        </label>
+      </div>
+
+      {error ? (
+        <p role="alert" className="text-body text-red-700">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={saving} disabledReason={saving ? "Saving." : undefined}>
+          {saving ? "Saving..." : "Save role"}
+        </Button>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function splitLines(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isRoleContextResponse(
+  value: unknown,
+): value is { data: MemberRoleContextRecord } {
+  if (!isRecord(value) || !isRecord(value.data)) return false;
+
+  const data = value.data;
+  return (
+    typeof data.primaryRole === "string" &&
+    Array.isArray(data.additionalRoles) &&
+    data.additionalRoles.every((role) => typeof role === "string") &&
+    Array.isArray(data.responsibilities) &&
+    data.responsibilities.every(
+      (responsibility) => typeof responsibility === "string",
+    ) &&
+    (data.additionalContext === null ||
+      typeof data.additionalContext === "string") &&
+    (data.submissionType === "memberSelfReported" ||
+      data.submissionType === "projectOwnerRecorded") &&
+    typeof data.updatedAt === "string"
+  );
+}
+
+function isApiErrorResponse(
+  value: unknown,
+): value is { error: { message: string } } {
+  return (
+    isRecord(value) &&
+    isRecord(value.error) &&
+    typeof value.error.message === "string"
   );
 }

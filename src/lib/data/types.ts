@@ -26,6 +26,15 @@ export const SOURCE_LABELS: Record<SourceKey, string> = {
   google_meet: "Google Meet",
 };
 
+export type MemberRoleContextRecord = {
+  primaryRole: string;
+  additionalRoles: string[];
+  responsibilities: string[];
+  additionalContext: string | null;
+  submissionType: "memberSelfReported" | "projectOwnerRecorded";
+  updatedAt: string;
+};
+
 export type MemberRecord = {
   id: string;
   slug: string;
@@ -40,6 +49,7 @@ export type MemberRecord = {
   lastActive: string;
   trend: TrendDirection;
   weeklyEvents: number[];
+  roleContext: MemberRoleContextRecord | null;
 };
 
 /**
