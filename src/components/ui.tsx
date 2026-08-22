@@ -7,7 +7,6 @@ import {
   ClockIcon,
   WarningIcon,
 } from "@/components/icons";
-import type { TrendDirection } from "@/lib/data/types";
 
 /* ---------- Button ---------- */
 
@@ -218,101 +217,6 @@ export function StatTile({ value, label }: { value: string; label: string }) {
       </b>
       <span className="text-body font-normal text-ink-500">{label}</span>
     </div>
-  );
-}
-
-/* ---------- Sparkline ---------- */
-
-const trendStroke: Record<TrendDirection, string> = {
-  rising: "var(--color-indigo-600)",
-  steady: "var(--color-ink-700)",
-  declining: "var(--color-amber-800)",
-  no_data: "var(--color-ink-700)",
-};
-
-export const trendWord: Record<TrendDirection, string> = {
-  rising: "Rising",
-  steady: "Steady",
-  declining: "Declining",
-  no_data: "Not enough data",
-};
-
-export function Sparkline({
-  points,
-  trend,
-  title,
-  width = 64,
-  height = 20,
-}: {
-  points: number[];
-  trend: TrendDirection;
-  title: string;
-  width?: number;
-  height?: number;
-}) {
-  if (trend === "no_data" || points.length < 2) {
-    return (
-      <svg role="img" aria-label={title} width={width} height={height}>
-        <title>{title}</title>
-        <rect
-          x="0.5"
-          y="0.5"
-          width={width - 1}
-          height={height - 1}
-          rx="6"
-          fill="none"
-          stroke="var(--color-ink-700)"
-          strokeDasharray="3 3"
-        />
-      </svg>
-    );
-  }
-
-  const pad = 3;
-  const max = Math.max(...points);
-  const min = Math.min(...points);
-  const span = max - min || 1;
-  const coords = points.map((point, index) => {
-    const x = pad + (index * (width - pad * 2)) / (points.length - 1);
-    const y = height - pad - ((point - min) / span) * (height - pad * 2);
-    return { x, y };
-  });
-  const path = coords
-    .map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)} ${c.y.toFixed(1)}`)
-    .join(" ");
-  const last = coords[coords.length - 1];
-
-  return (
-    <svg role="img" aria-label={title} width={width} height={height} fill="none">
-      <title>{title}</title>
-      <path
-        d={path}
-        stroke={trendStroke[trend]}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx={last.x} cy={last.y} r="2" fill={trendStroke[trend]} />
-    </svg>
-  );
-}
-
-export function TrendCell({
-  points,
-  trend,
-  title,
-}: {
-  points: number[];
-  trend: TrendDirection;
-  title: string;
-}) {
-  return (
-    <span className="flex items-center gap-2">
-      <Sparkline points={points} trend={trend} title={title} />
-      <span className="text-eyebrow font-semibold uppercase tracking-[0.06em] whitespace-nowrap text-ink-500">
-        {trendWord[trend]}
-      </span>
-    </span>
   );
 }
 

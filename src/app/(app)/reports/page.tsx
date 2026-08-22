@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Badge, Card, PageHeader, TrendCell } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import { listProjects, projectInitials } from "@/lib/data/queries";
 
 export const metadata = { title: "Reports - Slackr" };
@@ -50,10 +50,10 @@ export default async function ReportsPage() {
 
         return (
           <Card key={project.id} attention={attention} className="p-6">
-            <div className="flex items-center gap-4">
+            <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_8.5rem_10.5rem] items-center gap-6">
               <span
                 aria-hidden
-                className={`flex size-11 shrink-0 items-center justify-center rounded-tile text-eyebrow font-semibold uppercase tracking-[0.06em] ${
+                className={`flex size-11 items-center justify-center rounded-tile text-eyebrow font-semibold uppercase tracking-[0.06em] ${
                   attention
                     ? "bg-tint-amber text-amber-800"
                     : "bg-tint-indigo text-indigo-600"
@@ -62,7 +62,7 @@ export default async function ReportsPage() {
                 {projectInitials(project.title)}
               </span>
 
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1">
                 <h2 className="text-section font-semibold">
                   <Link
                     href={`/projects/${project.id}/report`}
@@ -84,15 +84,26 @@ export default async function ReportsPage() {
                 </p>
               </div>
 
-              <div className="flex shrink-0 items-center gap-4">
-                <TrendCell
-                  points={project.weeklyEvents}
-                  trend={project.trend}
-                  title={`${project.title} activity across the last four weeks.`}
-                />
+              <span className="flex flex-col items-end gap-0.5 text-right">
+                <b
+                  data-tabular
+                  className="text-section font-semibold text-ink-900"
+                >
+                  {project.membersWithActivity} / {project.memberCount}
+                </b>
+                <span className="text-body whitespace-nowrap text-ink-500">
+                  Members covered
+                </span>
+              </span>
+
+              <span className="flex justify-end">
                 <Badge
                   tone={
-                    attention ? "warn" : project.status === "collecting" ? "ok" : "early"
+                    attention
+                      ? "warn"
+                      : project.status === "collecting"
+                        ? "ok"
+                        : "early"
                   }
                 >
                   {attention
@@ -101,7 +112,7 @@ export default async function ReportsPage() {
                       ? "Ready"
                       : "Too early"}
                 </Badge>
-              </div>
+              </span>
             </div>
           </Card>
         );
