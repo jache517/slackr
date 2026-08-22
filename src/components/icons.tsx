@@ -96,6 +96,37 @@ export function SourcesIcon({ size = 18, className }: IconProps) {
   );
 }
 
+/**
+ * The four-pointed sparkle that marks a generated artefact. Its three stars
+ * carry `sparkle-star`, which is what the hover and press animation in
+ * `globals.css` reaches for.
+ */
+export function SparkleIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 18 18"
+      fill="currentColor"
+      aria-hidden
+      className={className}
+    >
+      <path
+        className="sparkle-star"
+        d="M8 2.2 9.1 5.6a2 2 0 0 0 1.3 1.3l3.4 1.1-3.4 1.1a2 2 0 0 0-1.3 1.3L8 13.8l-1.1-3.4a2 2 0 0 0-1.3-1.3L2.2 8l3.4-1.1a2 2 0 0 0 1.3-1.3L8 2.2Z"
+      />
+      <path
+        className="sparkle-star sparkle-star-a"
+        d="M14 1.5l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5L12 3.5l1.5-.5.5-1.5Z"
+      />
+      <path
+        className="sparkle-star sparkle-star-b"
+        d="M13.8 11.6l.45 1.35 1.35.45-1.35.45-.45 1.35-.45-1.35-1.35-.45 1.35-.45.45-1.35Z"
+      />
+    </svg>
+  );
+}
+
 export function SyncIcon({ size = 16, className }: IconProps) {
   return (
     <svg {...base(size, className)}>

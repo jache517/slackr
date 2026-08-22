@@ -6,6 +6,7 @@ import {
   ClockIcon,
   ConnectionsIcon,
   GithubMark,
+  SparkleIcon,
   GoogleDocsMark,
   GoogleMeetMark,
   MembersIcon,
@@ -181,7 +182,8 @@ export default async function ProjectDashboardPage({
           },
         ]}
         actions={
-          <ButtonLink href={`/projects/${project.id}/report`}>
+          <ButtonLink href={`/projects/${project.id}/report`} className="group">
+            <SparkleIcon size={18} />
             Generate report
           </ButtonLink>
         }

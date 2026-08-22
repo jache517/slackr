@@ -108,6 +108,49 @@
   }
 }
 
+/*
+ * The sparkle on Generate report. The three stars twinkle in sequence on
+ * hover and again, faster, on press. The blanket reduced-motion rule below
+ * switches it off along with everything else.
+ */
+@keyframes sparkle-twinkle {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.3) rotate(15deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.sparkle-star {
+  /* Each star turns about its own centre, not the whole SVG's. */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.group:hover .sparkle-star,
+.group:focus-visible .sparkle-star {
+  animation: sparkle-twinkle 620ms ease-in-out;
+}
+
+.group:active .sparkle-star {
+  animation: sparkle-twinkle 380ms ease-in-out;
+}
+
+.sparkle-star-a {
+  animation-delay: 90ms;
+}
+
+.sparkle-star-b {
+  animation-delay: 180ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
