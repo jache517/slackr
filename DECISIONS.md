@@ -124,3 +124,28 @@ guard next to the data access.
 rather than fixed dates.
 Why: a fixed date leaves every deadline in the past within months, so the
 seeded project stops exercising the states the screens were designed for.
+
+## 2026-08-22 - Password sign-in replaced the magic link
+
+`/login` takes an email and password through Supabase Auth.
+Why: the magic link never worked in practice. Supabase's redirect allowlist
+held `127.0.0.1:3000` while the app runs on `localhost:3000`, so every link
+was rejected as expired. The allowlist is fixed, but a password needs no
+inbox round trip, which matters for a demo the team has to run locally.
+
+## 2026-08-22 - The four top-level nav screens were designed here, not in the spec
+
+Reports, Members, Connections and Settings were built without a spec entry:
+`design/FINAL_DESIGN.md` covers six project screens only.
+Why: the sidebar shipped with five items and only one route, so four of five
+returned 404. Building them was the smaller lie. Reports orders by whether a
+report can be trusted; Members lists a person once per project because a share
+only means something inside one group; Connections treats a missing source as
+a warning rather than an absence; Settings shows only what exists.
+
+## 2026-08-22 - The sidebar names the session, never sample data
+
+The profile card became an account menu labelled with the signed-in address.
+Why: it was hardcoded to a member from the sample data and linked to a route
+that never existed. Naming the wrong person is worse than the 404, because
+nothing about it looks broken.
