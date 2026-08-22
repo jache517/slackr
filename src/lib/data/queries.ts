@@ -112,6 +112,7 @@ async function fetchProjects(projectIds?: string[]) {
     meetings,
     attendance,
     roleContexts,
+    unattributed,
   ] =
     await Promise.all([
       supabase
@@ -144,6 +145,10 @@ async function fetchProjects(projectIds?: string[]) {
           "id, project_id, member_id, primary_role, additional_roles, responsibilities, additional_context, submission_type, submitted_by_user_id, created_at, updated_at",
         )
         .in("project_id", ids),
+      supabase
+        .from("unattributed_github_accounts")
+        .select("project_id, author_username")
+        .in("project_id", ids),
     ]);
 
   const now = Date.now();
@@ -157,6 +162,7 @@ async function fetchProjects(projectIds?: string[]) {
       meetings: meetings.data ?? [],
       attendance: attendance.data ?? [],
       roleContexts: roleContexts.data ?? [],
+      unattributed: unattributed.data ?? [],
     }),
   );
 }
@@ -182,6 +188,7 @@ type Rows = {
     author_username: string | null;
     authored_at: string;
   }[];
+  unattributed: { project_id: string; author_username: string }[];
   docs: { project_id: string; member_id: string | null; occurred_at: string }[];
   meetings: { id: string; project_id: string }[];
   attendance: {
@@ -265,7 +272,11 @@ function assemble(
     now,
   );
 
-  const unmatchedAccount = findUnmatched(commitRows, sourceRows);
+  const unmatchedAccount = findUnmatched(
+    commitRows,
+    sourceRows,
+    rows.unattributed.filter((row) => row.project_id === project.id),
+  );
   const totalEvents = projectSeries.reduce((sum, n) => sum + n, 0);
 
   const status: ProjectStatus = unmatchedAccount
@@ -334,9 +345,19 @@ function assemble(
 function findUnmatched(
   commitRows: Rows["commits"],
   sourceRows: Rows["sources"],
+  decidedUnattributed: Rows["unattributed"],
 ): UnmatchedAccount | null {
+  // Handles the owner has already said belong to nobody. Matched case
+  // insensitively, the way GitHub treats them.
+  const settled = new Set(
+    decidedUnattributed.map((row) => row.author_username.toLowerCase()),
+  );
+
   const orphans = commitRows.filter(
-    (row) => !row.member_id && row.author_username,
+    (row) =>
+      !row.member_id &&
+      row.author_username &&
+      !settled.has(row.author_username.toLowerCase()),
   );
   if (orphans.length === 0) return null;
 

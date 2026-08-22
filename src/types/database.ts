@@ -228,6 +228,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      unattributed_github_accounts: {
+        Row: {
+          id: string;
+          project_id: string;
+          author_username: string;
+          decided_by_user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          author_username: string;
+          decided_by_user_id?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          author_username?: string;
+          decided_by_user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       member_role_context: {
         Row: {
           id: string;

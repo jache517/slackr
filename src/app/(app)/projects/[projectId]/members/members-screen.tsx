@@ -50,12 +50,50 @@ export function MembersScreen({
     const member = rows.find((row) => row.id === choice);
     const account = unmatched;
 
+    setMatching(true);
+
+    // "Not a member of this project" is a decision, not a missing answer. It
+    // is recorded so the warning knows the account has been settled rather
+    // than never looked at.
     if (!member) {
-      showToast({ message: "Choose a project member to save this match." });
+      try {
+        const response = await fetch(
+          `/api/projects/${projectId}/unattributed`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ authorUsername: account.handle }),
+          },
+        );
+
+        if (!response.ok) {
+          const payload: unknown = await response.json().catch(() => null);
+          throw new Error(
+            isApiErrorResponse(payload)
+              ? payload.error.message
+              : "That decision could not be saved.",
+          );
+        }
+
+        setUnmatched(null);
+        setChoice("");
+        router.refresh();
+        showToast({
+          message: `${account.handle} is marked as nobody's. Its ${account.commits} commits stay out of the report.`,
+        });
+      } catch (decisionError) {
+        showToast({
+          message:
+            decisionError instanceof Error
+              ? decisionError.message
+              : "That decision could not be saved.",
+        });
+      } finally {
+        setMatching(false);
+      }
+
       return;
     }
-
-    setMatching(true);
 
     try {
       const response = await fetch(`/api/members/${member.id}`, {
