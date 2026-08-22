@@ -89,3 +89,38 @@ can read a project. `members.auth_user_id` is unused.
 Why: there is no sign-in flow, so no member can be authenticated yet. Opening
 reads to a class of users that cannot exist would be an unreviewable security
 change with no way to test it.
+
+## 2026-08-22 - Sign-in is a magic link
+
+`/login` sends a one-time link; `/auth/callback` accepts both the PKCE code
+and a token hash.
+Why: no password to store, reset or leak, and the reader is already proving
+they hold the address their group will invite. OAuth belongs beside it once
+GitHub and Google credentials exist, but neither can run locally yet. The
+token-hash path is kept because a PKCE code is useless if the link is opened
+in a different browser than the one that asked for it.
+
+## 2026-08-22 - Every displayed figure is derived, never stored
+
+Shares, four-week series, trends, last-active labels, due labels, project
+status and the unmatched account are all computed from raw activity rows in
+`src/lib/data/types.ts` and `queries.ts`.
+Why: the fixtures carried a project sparkline that did not equal the sum of
+its members' activity. Deriving everything from one set of rows makes that
+class of contradiction impossible rather than merely absent.
+
+## 2026-08-22 - The session is checked once per render, not per query
+
+`requireSession` is wrapped in React `cache`, and the accessors call it rather
+than the layout doing it alone.
+Why: a screen calling three accessors verified the session three times against
+a rotating refresh token; the later calls fell back to the anon role and hit
+"permission denied for table projects". Caching fixes the race and keeps the
+guard next to the data access.
+
+## 2026-08-22 - Seed timestamps are relative to now()
+
+`supabase/seed.sql` writes `now() - interval '...'` and `current_date + n`
+rather than fixed dates.
+Why: a fixed date leaves every deadline in the past within months, so the
+seeded project stops exercising the states the screens were designed for.
