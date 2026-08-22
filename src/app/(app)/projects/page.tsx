@@ -1,104 +1,164 @@
 import Link from "next/link";
 
-import { PlusIcon, WarningIcon } from "@/components/icons";
 import {
-  ButtonLink,
-  Card,
-  PageHeader,
-  TrendCell,
-} from "@/components/ui";
-import {
-  listProjects,
-  projectInitials,
-  type ProjectRecord,
-} from "@/lib/data/queries";
+  CalendarIcon,
+  ChevronRightIcon,
+  FolderIcon,
+  MembersIcon,
+  PlusIcon,
+  SourcesIcon,
+} from "@/components/icons";
+import { Badge, ButtonLink, FactLine, PageHeader, type BadgeTone } from "@/components/ui";
+import { ALL_SOURCE_KEYS, listProjects, type ProjectRecord } from "@/lib/data/queries";
 import type { ProjectStatus } from "@/lib/data/types";
 
 export const metadata = { title: "Projects - Slackr" };
 
-const BUCKETS: { status: ProjectStatus; label: string; warn: boolean }[] = [
-  { status: "needs_attention", label: "Needs attention", warn: true },
-  { status: "collecting", label: "Collecting normally", warn: false },
-  { status: "too_early", label: "Too early to compare", warn: false },
-];
-
-const statusTone: Record<ProjectStatus, string> = {
-  needs_attention: "text-amber-800",
-  collecting: "text-green-800",
-  too_early: "text-ink-500",
+const STATUS: Record<
+  ProjectStatus,
+  { tone: BadgeTone; label: string; ring: string; tile: string }
+> = {
+  collecting: {
+    tone: "ok",
+    label: "Active",
+    ring: "var(--color-green-800)",
+    tile: "bg-tint-green text-green-800",
+  },
+  needs_attention: {
+    tone: "warn",
+    label: "Needs attention",
+    ring: "var(--color-amber-800)",
+    tile: "bg-tint-amber text-amber-800",
+  },
+  too_early: {
+    tone: "early",
+    label: "Too early",
+    ring: "var(--color-ink-700)",
+    tile: "bg-surface-track text-ink-700",
+  },
 };
 
-function ProjectCard({ project }: { project: ProjectRecord }) {
-  const attention = project.status === "needs_attention";
+/** Projects needing something come first; the rest keep their deadline order. */
+const ORDER: Record<ProjectStatus, number> = {
+  needs_attention: 0,
+  collecting: 1,
+  too_early: 2,
+};
+
+/**
+ * Coverage as a ring: the share of members the connected sources can see. It
+ * is drawn from the same number the label states, so the arc cannot disagree
+ * with the figure inside it.
+ */
+function CoverageRing({ percent, colour }: { percent: number; colour: string }) {
+  const radius = 26;
+  const circumference = 2 * Math.PI * radius;
 
   return (
-    <Card attention={attention} className="p-6">
-      <div className="flex items-center gap-4">
+    <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden>
+      <circle
+        cx="36"
+        cy="36"
+        r={radius}
+        fill="none"
+        stroke="var(--color-surface-track)"
+        strokeWidth="6"
+      />
+      <circle
+        cx="36"
+        cy="36"
+        r={radius}
+        fill="none"
+        stroke={colour}
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeDasharray={`${(percent / 100) * circumference} ${circumference}`}
+        transform="rotate(-90 36 36)"
+      />
+      <text
+        x="36"
+        y="36"
+        textAnchor="middle"
+        dominantBaseline="central"
+        className="fill-ink-900 text-body font-semibold"
+      >
+        {percent}%
+      </text>
+    </svg>
+  );
+}
+
+function ProjectCard({ project }: { project: ProjectRecord }) {
+  const status = STATUS[project.status];
+  const connected = project.sources.filter((source) => source.connected).length;
+
+  return (
+    <li>
+      <Link
+        href={`/projects/${project.id}`}
+        className="grid grid-cols-[64px_1fr_auto_24px] items-center gap-6 rounded-card border border-rule bg-surface-card p-6 no-underline transition-colors duration-[120ms] hover:border-ink-700"
+      >
         <span
           aria-hidden
-          className={`flex size-11 shrink-0 items-center justify-center rounded-tile text-eyebrow font-semibold uppercase tracking-[0.06em] ${
-            attention
-              ? "bg-tint-amber text-amber-800"
-              : "bg-tint-indigo text-indigo-600"
-          }`}
+          className={`flex size-16 items-center justify-center rounded-tile ${status.tile}`}
         >
-          {attention ? <WarningIcon size={20} /> : projectInitials(project.title)}
+          <FolderIcon size={26} />
         </span>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 className="text-section font-semibold">
-            <Link
-              href={`/projects/${project.id}`}
-              className="text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
-            >
+        <span className="flex min-w-0 flex-col gap-2">
+          <span className="flex flex-wrap items-center gap-3">
+            <span className="text-section font-semibold text-ink-900">
               {project.title}
-            </Link>
-          </h3>
-          <p className={`text-body ${statusTone[project.status]}`}>
-            {project.statusLine}
-          </p>
-          <p className="text-body text-ink-500">
-            {project.memberCount} members - {project.dueLabel}
-          </p>
-        </div>
+            </span>
+            <Badge tone={status.tone}>{status.label}</Badge>
+          </span>
 
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <TrendCell
-            points={project.weeklyEvents}
-            trend={project.trend}
-            title={`${project.title} activity across the last four weeks: ${
-              project.trend === "no_data" ? "not enough data" : project.trend
-            }.`}
+          <FactLine
+            items={[
+              {
+                icon: <MembersIcon size={16} />,
+                text: `${project.memberCount} members`,
+              },
+              {
+                icon: <SourcesIcon size={16} />,
+                text: `${connected} / ${ALL_SOURCE_KEYS.length} sources connected`,
+              },
+              {
+                icon: <CalendarIcon size={16} />,
+                text: `Deadline: ${project.deadlineLabel}`,
+              },
+            ]}
           />
-        </div>
 
-        {attention ? (
-          <ButtonLink
-            href={`/projects/${project.id}/members`}
-            className="shrink-0"
-          >
-            Match it on Members
-          </ButtonLink>
-        ) : null}
-      </div>
-    </Card>
+          <span className="text-body text-ink-500">
+            Last updated: {project.lastCollectedLabel}
+          </span>
+        </span>
+
+        <span className="flex flex-col items-center gap-1">
+          <CoverageRing
+            percent={project.coveragePercent}
+            colour={status.ring}
+          />
+          <span className="text-body text-ink-500">Data coverage</span>
+        </span>
+
+        <ChevronRightIcon size={20} className="text-ink-500" />
+      </Link>
+    </li>
   );
 }
 
 export default async function ProjectsPage() {
   const projects = await listProjects();
-  const needingAttention = projects.filter(
-    (project) => project.status === "needs_attention",
-  ).length;
+  const ordered = [...projects].sort(
+    (a, b) => ORDER[a.status] - ORDER[b.status],
+  );
 
   return (
     <>
       <PageHeader
-        meta={[
-          `${projects.length} project${projects.length === 1 ? "" : "s"}`,
-          `${needingAttention} needing attention`,
-        ]}
-        title="Projects"
+        title="My projects"
         actions={
           <ButtonLink href="/projects/new">
             <PlusIcon />
@@ -107,25 +167,17 @@ export default async function ProjectsPage() {
         }
       />
 
-      {BUCKETS.map(({ status, label, warn }) => {
-        const inBucket = projects.filter((project) => project.status === status);
-        if (inBucket.length === 0) return null;
-
-        return (
-          <section key={status} className="flex flex-col gap-3">
-            <h2
-              className={`text-eyebrow font-semibold uppercase tracking-[0.06em] ${
-                warn ? "text-amber-800" : "text-ink-500"
-              }`}
-            >
-              {label}
-            </h2>
-            {inBucket.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </section>
-        );
-      })}
+      {ordered.length === 0 ? (
+        <p className="text-body text-ink-500">
+          No projects yet. Create one and connect a source to start collecting.
+        </p>
+      ) : (
+        <ul className="flex list-none flex-col gap-4 p-0">
+          {ordered.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </ul>
+      )}
     </>
   );
 }

@@ -71,6 +71,31 @@ export function PlusIcon({ size = 18, className }: IconProps) {
   );
 }
 
+export function ChevronRightIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M7 4l5 5-5 5" />
+    </svg>
+  );
+}
+
+export function FolderIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h2.6l1.4 1.8H14a1.5 1.5 0 0 1 1.5 1.5v5.2a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5v-7Z" />
+    </svg>
+  );
+}
+
+export function SourcesIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <ellipse cx="9" cy="4.6" rx="5.6" ry="2.1" />
+      <path d="M3.4 4.6v8.8c0 1.16 2.51 2.1 5.6 2.1s5.6-.94 5.6-2.1V4.6M3.4 9c0 1.16 2.51 2.1 5.6 2.1s5.6-.94 5.6-2.1" />
+    </svg>
+  );
+}
+
 export function ArrowLeftIcon({ size = 16, className }: IconProps) {
   return (
     <svg {...base(size, className)}>
