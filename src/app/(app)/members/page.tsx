@@ -91,7 +91,7 @@ export default async function MembersPage() {
                       >
                         <Link
                           href={`/projects/${project.id}/report/${member.slug}`}
-                          className="text-indigo-600 underline underline-offset-2 hover:text-indigo-700 hover:decoration-2"
+                          className="text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
                         >
                           {member.name}
                         </Link>

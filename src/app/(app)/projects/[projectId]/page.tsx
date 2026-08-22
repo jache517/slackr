@@ -263,7 +263,7 @@ export default async function ProjectDashboardPage({
                       </span>
                       <Link
                         href={`/projects/${project.id}/report/${member.slug}`}
-                        className="font-medium text-indigo-600 underline underline-offset-2 hover:text-indigo-700"
+                        className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
                       >
                         {member.name}
                       </Link>

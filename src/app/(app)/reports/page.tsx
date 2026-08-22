@@ -66,7 +66,7 @@ export default async function ReportsPage() {
                 <h2 className="text-section font-semibold">
                   <Link
                     href={`/projects/${project.id}/report`}
-                    className="text-indigo-600 underline underline-offset-2 hover:text-indigo-700 hover:decoration-2"
+                    className="text-indigo-600 hover:text-indigo-700 hover:underline hover:underline-offset-2"
                   >
                     {project.title}
                   </Link>
