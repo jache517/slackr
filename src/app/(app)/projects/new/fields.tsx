@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 /**
  * The form primitives every New Project step shares.
  *
- * A field states whether it is required in the label row rather than relying
- * on an asterisk, so the requirement survives being read aloud.
+ * Required is the red asterisk readers already know from every other form.
+ * The glyph is decorative and the word "required" sits beside it for screen
+ * readers, so the requirement survives being read aloud.
  */
 
 export const controlClass =
@@ -27,13 +28,20 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="flex items-baseline gap-2">
+      <span className="flex items-baseline gap-1.5">
         <label htmlFor={id} className="text-body font-semibold text-ink-900">
           {label}
         </label>
-        <span className="text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500">
-          {optional ? "Optional" : "Required"}
-        </span>
+        {optional ? (
+          <span className="text-body text-ink-500">(Optional)</span>
+        ) : (
+          <>
+            <span aria-hidden className="text-body text-red-700">
+              *
+            </span>
+            <span className="sr-only">required</span>
+          </>
+        )}
       </span>
       {children}
       {error ? (
