@@ -7,16 +7,13 @@ import { STEPS, type StepIndex } from "./steps";
  *
  * It reports position, it is not a control: a step you have not reached is
  * not reachable by clicking a circle, because the draft has to pass each
- * step's checks on the way through. The list carries its own text summary
- * ("Step 2 of 4") so the state does not rest on colour alone.
+ * step's checks on the way through. Position never rests on colour alone:
+ * each step carries its own state in text, and the wizard names the step
+ * you are on above the panel.
  */
 export function Stepper({ current }: { current: StepIndex }) {
   return (
-    <nav aria-label="Progress" className="flex flex-col gap-3">
-      <p className="text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500">
-        Step {current + 1} of {STEPS.length}: {STEPS[current].label}
-      </p>
-
+    <nav aria-label="Progress">
       <ol className="flex list-none items-start p-0">
         {STEPS.map((step, index) => {
           const done = index < current;
