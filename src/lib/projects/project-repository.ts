@@ -22,7 +22,7 @@ import type { Project, ProjectDetail } from "@/types/api";
 import type { Database } from "@/types/database";
 
 const PROJECT_COLUMNS =
-  "id, title, deadline, created_by, created_at, updated_at";
+  "id, title, deadline, description, created_by, created_at, updated_at";
 const PROJECT_WITH_COUNTS_COLUMNS = `${PROJECT_COLUMNS}, members(count), source_connections(count)`;
 const MEMBER_COLUMNS =
   "id, project_id, name, email, github_username, google_email, auth_user_id, created_at, updated_at";
@@ -38,6 +38,7 @@ function toProjectInsert(input: CreateProjectInput, userId: string) {
   return {
     title: input.title,
     deadline: input.deadline,
+    description: input.description ?? null,
     created_by: userId,
   } satisfies Database["public"]["Tables"]["projects"]["Insert"];
 }
@@ -47,6 +48,7 @@ function toProjectUpdate(input: UpdateProjectInput) {
 
   if (input.title !== undefined) update.title = input.title;
   if (input.deadline !== undefined) update.deadline = input.deadline;
+  if (input.description !== undefined) update.description = input.description;
 
   return update;
 }

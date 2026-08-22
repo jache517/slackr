@@ -56,9 +56,27 @@ const deadlineSchema = z
   .string()
   .refine(isCalendarDate, "Deadline must be a valid YYYY-MM-DD date");
 
+const PROJECT_DESCRIPTION_MAX_LENGTH = 2000;
+
+/**
+ * Free text about the project, and nothing more: no part of collection or
+ * attribution reads it. An empty box is the same as no description, so it is
+ * stored as null rather than as an empty string.
+ */
+const projectDescriptionSchema = z
+  .string()
+  .trim()
+  .max(
+    PROJECT_DESCRIPTION_MAX_LENGTH,
+    `Description must be ${PROJECT_DESCRIPTION_MAX_LENGTH} characters or fewer`,
+  )
+  .transform((value) => (value.length > 0 ? value : null))
+  .nullable();
+
 const projectFields = {
   title: projectTitleSchema,
   deadline: deadlineSchema,
+  description: projectDescriptionSchema.optional(),
 };
 
 export const createProjectSchema = strictJsonObject(projectFields);
@@ -66,6 +84,7 @@ export const createProjectSchema = strictJsonObject(projectFields);
 export const updateProjectSchema = strictJsonObject({
   title: projectTitleSchema.optional(),
   deadline: deadlineSchema.optional(),
+  description: projectDescriptionSchema.optional(),
 }).refine((value) => Object.keys(value).length > 0, {
   message: "At least one project field is required",
   path: ["_root"],

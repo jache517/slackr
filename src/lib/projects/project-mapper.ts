@@ -39,6 +39,7 @@ export function mapProject(
     id: row.id,
     title: row.title,
     deadline: row.deadline,
+    description: row.description,
     memberCount,
     connectedSourceCount,
     createdAt: row.created_at,

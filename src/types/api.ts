@@ -10,13 +10,15 @@ export type Project = {
   id: string;
   title: string;
   deadline: string;
+  description: string | null;
   memberCount: number;
   connectedSourceCount: number;
   createdAt: string;
   updatedAt: string;
 };
 
-export type CreateProjectRequest = Pick<Project, "title" | "deadline">;
+export type CreateProjectRequest = Pick<Project, "title" | "deadline"> &
+  Partial<Pick<Project, "description">>;
 
 export type UpdateProjectRequest = Partial<CreateProjectRequest>;
 

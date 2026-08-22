@@ -20,6 +20,7 @@ export type Database = {
           id: string;
           title: string;
           deadline: string;
+          description: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -28,6 +29,7 @@ export type Database = {
           id?: string;
           title: string;
           deadline: string;
+          description?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
@@ -36,6 +38,7 @@ export type Database = {
           id?: string;
           title?: string;
           deadline?: string;
+          description?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
