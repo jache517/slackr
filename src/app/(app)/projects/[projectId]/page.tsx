@@ -19,6 +19,8 @@ import {
   PageHeader,
   type BadgeTone,
 } from "@/components/ui";
+
+import { SyncButton } from "./sync-button";
 import {
   getProjectReport,
   getReadinessChecks,
@@ -81,6 +83,16 @@ function StatCard({
   );
 }
 
+/** A field an unconnected source has no value for. */
+function Blank() {
+  return (
+    <span className="text-ink-500">
+      <span aria-hidden>--</span>
+      <span className="sr-only">none</span>
+    </span>
+  );
+}
+
 function SourceRow({
   source,
   last,
@@ -115,7 +127,7 @@ function SourceRow({
         ) : source.displayName ? (
           <span className="text-indigo-600">{source.displayName}</span>
         ) : (
-          <span className="text-ink-500">Not connected</span>
+          <Blank />
         )}
       </span>
 
@@ -123,14 +135,14 @@ function SourceRow({
         {source.connected ? (
           <Badge tone="ok">Connected</Badge>
         ) : (
-          <ButtonLink href="/connections" variant="secondary">
-            Connect
-          </ButtonLink>
+          <span className="text-body font-medium text-amber-800">
+            Not connected
+          </span>
         )}
       </span>
 
       <span className="text-right text-body text-ink-500">
-        {source.lastSyncLabel ? `Last sync: ${source.lastSyncLabel}` : ""}
+        {source.lastSyncLabel ? source.lastSyncLabel : <Blank />}
       </span>
     </li>
   );
@@ -149,9 +161,6 @@ export default async function ProjectDashboardPage({
   const blocked = checks.filter((check) => check.state === "blocked");
   const status = STATUS[project.status];
   const connected = project.sources.filter((source) => source.connected).length;
-  const lastSynced = project.sources
-    .map((source) => source.lastSyncLabel)
-    .find(Boolean);
 
   return (
     <>
@@ -232,13 +241,11 @@ export default async function ProjectDashboardPage({
 
       <Card>
         <div className="flex flex-col gap-4">
-          <div className="flex items-baseline justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <h2 className="text-subhead font-semibold text-ink-900">
               Connected sources
             </h2>
-            <span className="text-body text-ink-500">
-              {lastSynced ? `Last synced: ${lastSynced}` : "Nothing synced yet"}
-            </span>
+            <SyncButton projectId={project.id} />
           </div>
 
           <ul className="flex list-none flex-col p-0">

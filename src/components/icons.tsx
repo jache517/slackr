@@ -96,6 +96,15 @@ export function SourcesIcon({ size = 18, className }: IconProps) {
   );
 }
 
+export function SyncIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M15 9a6 6 0 0 1-10.2 4.3M3 9a6 6 0 0 1 10.2-4.3" />
+      <path d="M13.4 1.8v3h-3M4.6 16.2v-3h3" />
+    </svg>
+  );
+}
+
 export function ArrowLeftIcon({ size = 16, className }: IconProps) {
   return (
     <svg {...base(size, className)}>
