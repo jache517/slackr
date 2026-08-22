@@ -49,3 +49,37 @@ export function getOptionalServerEnv() {
 
   return result.data;
 }
+
+const GOOGLE_CALLBACK_PATH = "/api/integrations/google/callback";
+
+export function getGoogleOAuthConfig() {
+  const env = getOptionalServerEnv();
+
+  if (!env.APP_URL || !env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+    throw new EnvironmentConfigurationError([
+      ...(!env.APP_URL ? ["APP_URL"] : []),
+      ...(!env.GOOGLE_CLIENT_ID ? ["GOOGLE_CLIENT_ID"] : []),
+      ...(!env.GOOGLE_CLIENT_SECRET ? ["GOOGLE_CLIENT_SECRET"] : []),
+    ]);
+  }
+
+  const appUrl = new URL(env.APP_URL);
+
+  if (
+    appUrl.username ||
+    appUrl.password ||
+    appUrl.search ||
+    appUrl.hash ||
+    (appUrl.pathname !== "" && appUrl.pathname !== "/") ||
+    (appUrl.protocol !== "https:" &&
+      !(appUrl.protocol === "http:" && appUrl.hostname === "localhost"))
+  ) {
+    throw new EnvironmentConfigurationError(["APP_URL"]);
+  }
+
+  return {
+    clientId: env.GOOGLE_CLIENT_ID,
+    clientSecret: env.GOOGLE_CLIENT_SECRET,
+    redirectUri: `${appUrl.origin}${GOOGLE_CALLBACK_PATH}`,
+  };
+}

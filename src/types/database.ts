@@ -321,9 +321,66 @@ export type Database = {
         };
         Relationships: [];
       };
+      google_oauth_intents: {
+        Row: {
+          id: string;
+          project_id: string;
+          requested_by_user_id: string;
+          source_type: "google_docs";
+          external_id: string;
+          state_hash: string;
+          expires_at: string;
+          consumed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          requested_by_user_id: string;
+          source_type?: "google_docs";
+          external_id: string;
+          state_hash: string;
+          expires_at: string;
+          consumed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          requested_by_user_id?: string;
+          source_type?: "google_docs";
+          external_id?: string;
+          state_hash?: string;
+          expires_at?: string;
+          consumed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      create_google_oauth_intent: {
+        Args: {
+          p_project_id: string;
+          p_external_id: string;
+          p_state_hash: string;
+          p_expires_at: string;
+        };
+        Returns: string;
+      };
+      consume_google_oauth_intent: {
+        Args: {
+          p_state_hash: string;
+        };
+        Returns: Array<{
+          project_id: string;
+          requested_by_user_id: string;
+          external_id: string;
+          expires_at: string;
+        }>;
+      };
+    };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
   };

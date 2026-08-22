@@ -116,6 +116,3 @@ schema, and development plan.
 export, Canvas integration, contribution scoring, ranking, automatic grading,
 free-rider classification, and AI judgement. The optional AI feature produces
 only an evidence-grounded draft; it does not score or decide contribution.
-
-See [`docs/decisions/report-presentation-and-ai.md`](./docs/decisions/report-presentation-and-ai.md)
-for the separation between team-only alerts and the instructor-facing report.
