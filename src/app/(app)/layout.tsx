@@ -1,7 +1,12 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ToastProvider } from "@/components/toast";
+import { requireSession } from "@/lib/auth/require-session";
 
-export default function AppLayout({ children }: LayoutProps<"/">) {
+export default async function AppLayout({ children }: LayoutProps<"/">) {
+  // Every screen under this layout needs a signed-in owner. RLS still decides
+  // which rows they see; this only decides whether they get a page at all.
+  await requireSession();
+
   return (
     <ToastProvider>
       <div className="flex min-h-screen bg-surface-page">
