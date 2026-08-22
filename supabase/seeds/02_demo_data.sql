@@ -1,4 +1,5 @@
--- Seed data for local development.
+-- Demo project data. Contains no credentials, so it is safe to load into a
+-- hosted database as well as the local stack.
 --
 -- Generated to reproduce the figures the interface was designed against:
 --   commits 18+16+13+2 = 49, doc activity 14+11+12+3 = 40,
@@ -6,20 +7,39 @@
 --   shares 35/30/28/7. The four-week series are seeded by timestamp, so
 --   the sparklines derive from the rows rather than being asserted.
 --
--- Sign in as owner@slackr.test with the password slackr-demo.
--- This account exists only in local development.
+-- Every table is behind row level security keyed off
+-- projects.created_by = auth.uid(), so these rows are visible only to the
+-- account resolved below. Locally that is owner@slackr.test, created by
+-- 01_local_demo_account.sql. Against a hosted database, create the account
+-- first and name it:
+--
+--   set slackr.demo_owner_email = 'you@example.com';
+--   \i supabase/seeds/02_demo_data.sql
 
 begin;
 
--- GoTrue reads these token columns directly and rejects nulls, so the
--- empty strings below are required rather than tidiness.
-insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, created_at, updated_at, encrypted_password, raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous, confirmation_token, recovery_token, email_change_token_new, email_change_token_current, email_change, phone_change, phone_change_token, reauthentication_token)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@slackr.test', now(), now(), now(), crypt('slackr-demo', gen_salt('bf')), '{"provider":"email","providers":["email"]}', '{}', false, false, '', '', '', '', '', '', '', '')
-on conflict (id) do nothing;
+create temporary view demo_owner as
+  select id from auth.users
+  where email = coalesce(
+    nullif(current_setting('slackr.demo_owner_email', true), ''),
+    'owner@slackr.test'
+  );
+
+do $$
+begin
+  if not exists (select 1 from demo_owner) then
+    raise exception
+      'Demo owner % has no account in auth.users. Create it first, then re-run.',
+      coalesce(
+        nullif(current_setting('slackr.demo_owner_email', true), ''),
+        'owner@slackr.test'
+      );
+  end if;
+end $$;
 
 -- COMP30022 Final Project
 insert into public.projects (id, title, deadline, created_by) values
-  ('11111111-1111-4111-8111-000000000001', 'COMP30022 Final Project', current_date + 2, '00000000-0000-4000-8000-000000000001');
+  ('11111111-1111-4111-8111-000000000001', 'COMP30022 Final Project', current_date + 2, (select id from demo_owner));
 
 insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
   ('33333333-3333-4333-8333-000000000001', '11111111-1111-4111-8111-000000000001', 'github', 'group3/final-project', 'group3/final-project', now()),
@@ -155,7 +175,7 @@ insert into public.meeting_attendance (project_id, meeting_id, member_id, attend
 
 -- INFO20003 Group Project
 insert into public.projects (id, title, deadline, created_by) values
-  ('11111111-1111-4111-8111-000000000002', 'INFO20003 Group Project', current_date + 44, '00000000-0000-4000-8000-000000000001');
+  ('11111111-1111-4111-8111-000000000002', 'INFO20003 Group Project', current_date + 44, (select id from demo_owner));
 
 insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
   ('33333333-3333-4333-8333-000000000004', '11111111-1111-4111-8111-000000000002', 'github', 'group3/final-project', 'group3/final-project', now()),
@@ -257,7 +277,7 @@ insert into public.meeting_attendance (project_id, meeting_id, member_id, attend
 
 -- SWEN30006 Project 2
 insert into public.projects (id, title, deadline, created_by) values
-  ('11111111-1111-4111-8111-000000000003', 'SWEN30006 Project 2', current_date + 24, '00000000-0000-4000-8000-000000000001');
+  ('11111111-1111-4111-8111-000000000003', 'SWEN30006 Project 2', current_date + 24, (select id from demo_owner));
 
 insert into public.source_connections (id, project_id, source_type, external_id, display_name, last_synced_at) values
   ('33333333-3333-4333-8333-000000000007', '11111111-1111-4111-8111-000000000003', 'github', 'group3/final-project', 'group3/final-project', now());

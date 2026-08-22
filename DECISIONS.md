@@ -120,7 +120,7 @@ guard next to the data access.
 
 ## 2026-08-22 - Seed timestamps are relative to now()
 
-`supabase/seed.sql` writes `now() - interval '...'` and `current_date + n`
+`supabase/seeds/02_demo_data.sql` writes `now() - interval '...'` and `current_date + n`
 rather than fixed dates.
 Why: a fixed date leaves every deadline in the past within months, so the
 seeded project stops exercising the states the screens were designed for.
