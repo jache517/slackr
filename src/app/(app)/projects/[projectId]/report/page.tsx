@@ -79,7 +79,7 @@ function Distribution({
     <span
       aria-hidden
       title={label}
-      className="mt-1.5 flex h-7 items-end justify-end gap-px"
+      className="flex h-5 shrink-0 items-end gap-px"
     >
       {counts.map((count, index) => (
         <span
@@ -172,7 +172,11 @@ export default async function ReportPage({
   // Only members who actually said something. Printing "none recorded" for
   // everyone else was most of this page's length and none of its meaning.
   const withNotes = snapshot.members.filter(
-    (member) => member.roleContext !== null || member.context.length > 0,
+    (member) =>
+      member.context.length > 0 ||
+      Boolean(member.roleContext?.additionalContext) ||
+      (member.roleContext?.additionalRoles.length ?? 0) > 0 ||
+      (member.roleContext?.responsibilities.length ?? 0) > 0,
   );
 
   const timeline = snapshot.visualisations.find(
@@ -233,13 +237,13 @@ export default async function ReportPage({
       <Card>
         <div className="flex flex-col gap-4">
           <h2 className="text-subhead font-semibold text-ink-900">
-            Recorded evidence
+            Activity by member
           </h2>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse">
               <caption className="sr-only">
-                Recorded evidence by member and source
+                Activity by member and source
               </caption>
               <thead>
                 <tr className="text-eyebrow font-semibold uppercase tracking-[0.06em] text-ink-500">
@@ -269,7 +273,7 @@ export default async function ReportPage({
                   <tr key={member.memberId}>
                     <th
                       scope="row"
-                      className="border-b border-rule py-3 pr-4 text-left align-top"
+                      className="border-b border-rule py-3 pr-4 text-left align-middle"
                     >
                       <span className="block text-body font-medium text-ink-900">
                         {member.name}
@@ -281,43 +285,47 @@ export default async function ReportPage({
                       ) : null}
                     </th>
 
-                    <td className="border-b border-rule py-3 pl-4 align-top text-right">
-                      <span
-                        data-tabular
-                        className={`text-body ${github.real ? "text-ink-900" : "text-ink-500"}`}
-                      >
-                        {github.text}
+                    <td className="border-b border-rule py-3 pl-4 align-middle">
+                      <span className="flex items-center justify-end gap-3">
+                        {github.real ? (
+                          <Distribution
+                            counts={githubByWeek}
+                            max={maxGithub}
+                            tone="bg-indigo-600"
+                            label={`${member.name}: commits week by week`}
+                          />
+                        ) : null}
+                        <span
+                          data-tabular
+                          className={`text-body ${github.real ? "text-ink-900" : "text-ink-500"}`}
+                        >
+                          {github.text}
+                        </span>
                       </span>
-                      {github.real ? (
-                        <Distribution
-                          counts={githubByWeek}
-                          max={maxGithub}
-                          tone="bg-indigo-600"
-                          label={`${member.name}: commits week by week`}
-                        />
-                      ) : null}
                     </td>
 
-                    <td className="border-b border-rule py-3 pl-4 align-top text-right">
-                      <span
-                        data-tabular
-                        className={`text-body ${docs.real ? "text-ink-900" : "text-ink-500"}`}
-                      >
-                        {docs.text}
+                    <td className="border-b border-rule py-3 pl-4 align-middle">
+                      <span className="flex items-center justify-end gap-3">
+                        {docs.real ? (
+                          <Distribution
+                            counts={docsByWeek}
+                            max={maxDocs}
+                            tone="bg-green-800"
+                            label={`${member.name}: document activity week by week`}
+                          />
+                        ) : null}
+                        <span
+                          data-tabular
+                          className={`text-body ${docs.real ? "text-ink-900" : "text-ink-500"}`}
+                        >
+                          {docs.text}
+                        </span>
                       </span>
-                      {docs.real ? (
-                        <Distribution
-                          counts={docsByWeek}
-                          max={maxDocs}
-                          tone="bg-green-800"
-                          label={`${member.name}: document activity week by week`}
-                        />
-                      ) : null}
                     </td>
 
                     <td
                       data-tabular
-                      className="border-b border-rule py-3 pl-4 align-top text-right text-body text-ink-500"
+                      className="border-b border-rule py-3 pl-4 align-middle text-right text-body whitespace-nowrap text-ink-500"
                     >
                       {lastActiveAt ? formatDate(lastActiveAt) : "--"}
                     </td>
@@ -375,15 +383,15 @@ export default async function ReportPage({
                     {member.name}
                   </h3>
 
-                  {member.roleContext ? (
+                  {member.roleContext &&
+                  member.roleContext.additionalRoles.length +
+                    member.roleContext.responsibilities.length >
+                    0 ? (
                     <p className="mt-1 text-body text-ink-500">
                       {[
-                        member.roleContext.primaryRole,
                         ...member.roleContext.additionalRoles,
                         ...member.roleContext.responsibilities,
-                      ]
-                        .filter(Boolean)
-                        .join(" - ")}
+                      ].join(" - ")}
                     </p>
                   ) : null}
 
