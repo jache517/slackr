@@ -2,11 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Disclosure } from "@/components/disclosure";
+import { ExportButton } from "@/components/export-button";
 import { WarningIcon } from "@/components/icons";
 import {
   Badge,
   Bar,
-  Button,
   ButtonLink,
   Card,
   PageHeader,
@@ -42,7 +42,7 @@ export default async function ReportPage({
           `${members.length} members`,
         ]}
         title={`Three of four members contributed at a similar level.`}
-        actions={<Button variant="secondary">Export as PDF</Button>}
+        actions={<ExportButton />}
       />
 
       {project.unmatchedAccount ? (

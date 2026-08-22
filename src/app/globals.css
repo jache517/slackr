@@ -116,3 +116,34 @@
     animation: none !important;
   }
 }
+
+/*
+ * Print / export-to-PDF. The report is the artefact that leaves the product,
+ * so the chrome drops away and the content keeps its real structure: headings,
+ * tables and reading order carry into the file unchanged.
+ */
+@media print {
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  /* Bars and tints are the data, not decoration: keep them in the file. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* A member's block should not be split across a page boundary. */
+  section,
+  table {
+    break-inside: avoid;
+  }
+}

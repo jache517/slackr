@@ -43,7 +43,10 @@ export function AppSidebar() {
   const active = currentKey(pathname);
 
   return (
-    <div className="flex w-65 shrink-0 flex-col gap-6 border-r border-rule bg-surface-card px-4 py-6">
+    <div
+      data-print-hide
+      className="flex w-65 shrink-0 flex-col gap-6 border-r border-rule bg-surface-card px-4 py-6"
+    >
       <Link
         href="/projects"
         aria-label="Slackr home"

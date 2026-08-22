@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 
 import { Disclosure } from "@/components/disclosure";
 import { QuoteIcon } from "@/components/icons";
-import { Bar, Button, Card, PageHeader, StatTile } from "@/components/ui";
+import { AskForContext } from "@/components/ask-for-context";
+import { Bar, Card, PageHeader, StatTile } from "@/components/ui";
 import { getMemberDetail } from "@/lib/data/queries";
 
 type Measure = {
@@ -74,7 +75,7 @@ export default async function MemberDetailPage({
           `even split ${evenSplitPercent}%`,
         ]}
         title={`${firstName} recorded far less activity than the rest of the group.`}
-        actions={<Button>Ask {firstName} for context</Button>}
+        actions={<AskForContext firstName={firstName} />}
       />
 
       <Card>
