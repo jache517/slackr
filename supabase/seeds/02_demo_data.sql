@@ -177,6 +177,23 @@ insert into public.meeting_attendance (project_id, meeting_id, member_id, attend
   ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000300', '22222222-2222-4222-8222-000000000004', 'Kevin Liu', 'kevin.liu@unitech.edu.au', now() - interval '554 hours'),
   ('11111111-1111-4111-8111-000000000001', '44444444-4444-4444-8444-000000000301', '22222222-2222-4222-8222-000000000004', 'Kevin Liu', 'kevin.liu@unitech.edu.au', now() - interval '379 hours');
 
+-- Role context and member notes for COMP30022.
+--
+-- Authored by people rather than recorded by a source, which is exactly what
+-- the report separates them for: Kevin's note is the explanation the figures
+-- cannot give on their own.
+insert into public.member_role_context (project_id, member_id, primary_role, additional_roles, responsibilities, additional_context, submission_type, submitted_by_user_id) values
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000001', 'Backend developer', array['Repository maintainer'], array['API endpoints','Database schema'], null, 'project_owner_recorded', (select id from demo_owner)),
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000002', 'Frontend developer', array[]::text[], array['Interface build','Component library'], null, 'project_owner_recorded', (select id from demo_owner)),
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000003', 'Full stack developer', array[]::text[], array['Integration','Deployment'], 'Took two weeks of approved leave partway through the project.', 'project_owner_recorded', (select id from demo_owner)),
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000004', 'Researcher', array['Designer'], array['User interviews','Presentation deck'], null, 'member_self_reported', (select id from demo_owner))
+on conflict (member_id) do nothing;
+
+insert into public.member_context (project_id, member_id, context_text, submission_type, submitted_by_user_id, created_at) values
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000004', 'I ran the five user interviews off-platform and built the presentation in Figma, so none of that work shows up in GitHub or Google Docs.', 'member_self_reported', (select id from demo_owner), now() - interval '96 hours'),
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000003', 'Away on approved leave between weeks two and four, which is why the commit history stops partway through.', 'project_owner_recorded', (select id from demo_owner), now() - interval '72 hours'),
+  ('11111111-1111-4111-8111-000000000001', '22222222-2222-4222-8222-000000000001', 'Also reviewed most of the pull requests, which the commit count does not capture.', 'member_self_reported', (select id from demo_owner), now() - interval '48 hours');
+
 -- INFO20003 Group Project
 insert into public.projects (id, title, deadline, created_by, created_at) values
   ('11111111-1111-4111-8111-000000000002', 'INFO20003 Group Project', current_date + 44, (select id from demo_owner), now() - interval '700 hours');
