@@ -7,6 +7,7 @@ import { requireSession } from "@/lib/auth/require-session";
 import { generateAiEvidenceReport } from "@/lib/report/ai-report-service";
 import { getReportScope } from "@/lib/report/report-repository";
 import { buildCanonicalEvidenceSnapshot } from "@/lib/report/report-service";
+import { bucketCount, bucketTimestamps } from "@/lib/report/activity-buckets";
 import { resolveReportPeriod } from "@/lib/report/report-validation";
 import type { CanonicalEvidenceSnapshot, ReportVisualisation } from "@/types/api";
 
@@ -56,17 +57,44 @@ function lastActive(member: CanonicalEvidenceSnapshot["members"][number]) {
   return stamps.reduce((latest, value) => (value > latest ? value : latest));
 }
 
-/** Proportional bar sharing the row with its figure, so the two cannot disagree. */
-function Meter({ value, max, tone }: { value: number; max: number; tone: string }) {
+/**
+ * When the work happened, week by week, beside the figure for how much.
+ *
+ * Every row is drawn against one shared maximum per source, so a tall bar
+ * means the same thing on every line. A week with nothing shows its empty
+ * track rather than disappearing, which is what makes a gap legible.
+ */
+function Distribution({
+  counts,
+  max,
+  tone,
+  label,
+}: {
+  counts: number[];
+  max: number;
+  tone: string;
+  label: string;
+}) {
   return (
     <span
       aria-hidden
-      className="mt-1 block h-1.5 w-full overflow-hidden rounded-full bg-surface-track"
+      title={label}
+      className="mt-1.5 flex h-7 items-end justify-end gap-px"
     >
-      <span
-        className={`block h-full rounded-full ${tone}`}
-        style={{ width: `${max > 0 ? Math.round((value / max) * 100) : 0}%` }}
-      />
+      {counts.map((count, index) => (
+        <span
+          key={index}
+          className="flex h-full w-1.5 items-end rounded-[1px] bg-surface-track"
+        >
+          <span
+            className={`w-full rounded-[1px] ${tone}`}
+            style={{
+              height:
+                count === 0 ? "0%" : `${Math.max(14, (count / max) * 100)}%`,
+            }}
+          />
+        </span>
+      ))}
     </span>
   );
 }
@@ -108,6 +136,9 @@ export default async function ReportPage({
   const aiResult = await generateAiEvidenceReport(snapshot);
   const report = aiResult.ok ? aiResult.report : null;
 
+  const { from, to } = snapshot.monitoringPeriod;
+  const buckets = bucketCount(from, to);
+
   const rows = snapshot.members.map((member) => ({
     member,
     github: evidenceCell(
@@ -118,11 +149,25 @@ export default async function ReportPage({
       member.evidence.googleDocs?.activityCount ?? null,
       snapshot.sourceStates.googleDocs.status,
     ),
+    githubByWeek: bucketTimestamps(
+      (member.evidence.github?.items ?? []).map((item) => item.timestamp),
+      from,
+      to,
+      buckets,
+    ),
+    docsByWeek: bucketTimestamps(
+      (member.evidence.googleDocs?.items ?? []).map((item) => item.timestamp),
+      from,
+      to,
+      buckets,
+    ),
     lastActiveAt: lastActive(member),
   }));
 
-  const maxGithub = Math.max(1, ...rows.map((row) => row.github.value));
-  const maxDocs = Math.max(1, ...rows.map((row) => row.docs.value));
+  // One scale per source across every member, so bar heights compare down the
+  // column instead of each row being drawn against itself.
+  const maxGithub = Math.max(1, ...rows.flatMap((row) => row.githubByWeek));
+  const maxDocs = Math.max(1, ...rows.flatMap((row) => row.docsByWeek));
 
   // Only members who actually said something. Printing "none recorded" for
   // everyone else was most of this page's length and none of its meaning.
@@ -213,7 +258,14 @@ export default async function ReportPage({
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ member, github, docs, lastActiveAt }) => (
+                {rows.map(({
+                  member,
+                  github,
+                  docs,
+                  githubByWeek,
+                  docsByWeek,
+                  lastActiveAt,
+                }) => (
                   <tr key={member.memberId}>
                     <th
                       scope="row"
@@ -237,7 +289,12 @@ export default async function ReportPage({
                         {github.text}
                       </span>
                       {github.real ? (
-                        <Meter value={github.value} max={maxGithub} tone="bg-indigo-600" />
+                        <Distribution
+                          counts={githubByWeek}
+                          max={maxGithub}
+                          tone="bg-indigo-600"
+                          label={`${member.name}: commits week by week`}
+                        />
                       ) : null}
                     </td>
 
@@ -249,7 +306,12 @@ export default async function ReportPage({
                         {docs.text}
                       </span>
                       {docs.real ? (
-                        <Meter value={docs.value} max={maxDocs} tone="bg-green-800" />
+                        <Distribution
+                          counts={docsByWeek}
+                          max={maxDocs}
+                          tone="bg-green-800"
+                          label={`${member.name}: document activity week by week`}
+                        />
                       ) : null}
                     </td>
 
@@ -266,6 +328,7 @@ export default async function ReportPage({
           </div>
 
           <p className="text-body text-ink-500">
+            Bars run week by week from {from} to {to}, on one scale per column.
             A zero means a connected source recorded nothing. Words in place of
             a number mean the source could not be read at all.
           </p>
