@@ -7,12 +7,15 @@ import { Dialog } from "@/components/dialog";
 import { useToast } from "@/components/toast";
 import { Button, Card } from "@/components/ui";
 
+import { ConnectSourcesStep } from "./connect-sources-step";
 import {
   emptyDraft,
   validateMembers,
   validateProjectInfo,
+  validateSources,
   type Draft,
   type MemberErrors,
+  type SourceErrors,
 } from "./draft";
 import { MembersStep } from "./members-step";
 import { ProjectInfoStep } from "./project-info-step";
@@ -56,6 +59,7 @@ export function NewProjectWizard() {
   const [memberErrors, setMemberErrors] = useState<Map<string, MemberErrors>>(
     new Map(),
   );
+  const [sourceErrors, setSourceErrors] = useState<SourceErrors>({});
   const [discarding, setDiscarding] = useState(false);
 
   const fields = useRef(new Map<string, HTMLElement>());
@@ -94,6 +98,7 @@ export function NewProjectWizard() {
     // that is no longer on screen is just noise.
     setInfoErrors({});
     setMemberErrors(new Map());
+    setSourceErrors({});
   }
 
   function goTo(next: StepIndex) {
@@ -137,16 +142,31 @@ export function NewProjectWizard() {
       return false;
     }
 
+    if (step === 2) {
+      const errors = validateSources(draft);
+      setSourceErrors(errors);
+
+      if (errors.githubUrl) {
+        focusField("github-url");
+        return false;
+      }
+      if (errors.googleDocUrl) {
+        focusField("google-doc-url");
+        return false;
+      }
+      return true;
+    }
+
     return true;
   }
 
   function next() {
     if (!checkCurrentStep()) return;
 
-    if (step === 1) {
-      // Steps 3 and 4 are not built yet, so the flow stops here rather than
+    if (step === 2) {
+      // Step 4 is not built yet, so the flow stops here rather than
       // pretending the project was created.
-      showToast({ message: "Connecting sources is step 3, still to come." });
+      showToast({ message: "Reviewing and creating is step 4, still to come." });
       return;
     }
 
@@ -207,6 +227,15 @@ export function NewProjectWizard() {
               <MembersStep
                 draft={draft}
                 errors={memberErrors}
+                onChange={change}
+                registerField={registerField}
+              />
+            ) : null}
+
+            {step === 2 ? (
+              <ConnectSourcesStep
+                draft={draft}
+                errors={sourceErrors}
                 onChange={change}
                 registerField={registerField}
               />

@@ -21,7 +21,11 @@ export type Draft = {
   title: string;
   dueDate: string;
   members: MemberDraft[];
+  githubUrl: string;
+  googleDocUrl: string;
 };
+
+export type SourceErrors = { githubUrl?: string; googleDocUrl?: string };
 
 export type MemberErrors = Partial<Omit<MemberDraft, "key">>;
 
@@ -39,7 +43,13 @@ export function emptyMember(): MemberDraft {
 }
 
 export function emptyDraft(): Draft {
-  return { title: "", dueDate: "", members: [emptyMember()] };
+  return {
+    title: "",
+    dueDate: "",
+    members: [emptyMember()],
+    githubUrl: "",
+    googleDocUrl: "",
+  };
 }
 
 export function formatDue(value: string) {
@@ -145,4 +155,47 @@ export function memberPayload(member: MemberDraft) {
     githubUsername: orNull(member.githubUsername),
     googleEmail: orNull(member.googleEmail),
   };
+}
+
+/**
+ * The source URL checks the wizard can make without the server's
+ * canonicaliser, which lives behind `next/server` imports and stays there.
+ * These catch the wrong host or the wrong shape of link; whether the
+ * repository is public, and whether the document can be read, is the
+ * server's answer to give.
+ */
+export function validateSources(draft: Draft): SourceErrors {
+  const errors: SourceErrors = {};
+  const github = draft.githubUrl.trim();
+  const doc = draft.googleDocUrl.trim();
+
+  if (github && !parseHttpsUrl(github, "github.com", /^\/[^/]+\/[^/]+$/)) {
+    errors.githubUrl =
+      "Use the repository's web address, like https://github.com/owner/repository.";
+  }
+
+  if (
+    doc &&
+    !parseHttpsUrl(doc, "docs.google.com", /^\/document\/d\/[^/]+(\/.*)?$/)
+  ) {
+    errors.googleDocUrl =
+      "Use the document's web address, like https://docs.google.com/document/d/...";
+  }
+
+  return errors;
+}
+
+function parseHttpsUrl(value: string, host: string, path: RegExp) {
+  let url: URL;
+
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+
+  const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+  const pathname = url.pathname.replace(/\/$/, "").replace(/\.git$/, "");
+
+  return url.protocol === "https:" && hostname === host && path.test(pathname);
 }
